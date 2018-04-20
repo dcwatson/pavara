@@ -1,0 +1,227 @@
+<CoordinateSystem> { Y-Up }
+
+<Comment> {
+  "dxf2egg Walker-Head.dxf head.egg"
+}
+<Group> Walker.Head.Main {
+  <VertexPool> Walker.Head.Main {
+    <Vertex> 0 {
+      -0.36165 0.0611683 0.309391
+    }
+    <Vertex> 1 {
+      -0.36165 -0.186168 -0.289058
+    }
+    <Vertex> 2 {
+      -1.6221e-20 -0.0163199 -0.5573
+    }
+    <Vertex> 3 {
+      1.6221e-20 0.231016 0.0411488
+    }
+    <Vertex> 4 {
+      -1.6221e-20 -0.356016 -0.0208157
+    }
+    <Vertex> 5 {
+      1.6221e-20 -0.10868 0.577633
+    }
+    <Vertex> 6 {
+      0.36165 0.0611683 0.309391
+    }
+    <Vertex> 7 {
+      0.36165 -0.186168 -0.289058
+    }
+    <Vertex> 8 {
+      -0.206204 -0.241209 -0.289058
+    }
+    <Vertex> 9 {
+      -1.05964e-07 -0.48665 -0.0208157
+    }
+    <Vertex> 10 {
+      0.206204 -0.241209 -0.289058
+    }
+    <Vertex> 11 {
+      -1.05964e-07 0.00423298 -0.5573
+    }
+    <Vertex> 12 {
+      -0.206204 0.116209 0.309391
+    }
+    <Vertex> 13 {
+      -1.05964e-07 -0.129233 0.577633
+    }
+    <Vertex> 14 {
+      0.206204 0.116209 0.309391
+    }
+  }
+  <Polygon> {
+    <RGBA> { 1 1 1 1 }
+    <VertexRef> { 0 1 2 3 <Ref> { Walker.Head.Main } }
+  }
+  <Polygon> {
+    <RGBA> { 1 1 1 1 }
+    <VertexRef> { 4 5 6 7 <Ref> { Walker.Head.Main } }
+  }
+  <Polygon> {
+    <RGBA> { 1 1 1 1 }
+    <VertexRef> { 2 7 6 3 <Ref> { Walker.Head.Main } }
+  }
+  <Polygon> {
+    <RGBA> { 1 1 1 1 }
+    <VertexRef> { 0 5 4 1 <Ref> { Walker.Head.Main } }
+  }
+  <Polygon> {
+    <RGBA> { 1 1 1 1 }
+    <VertexRef> { 1 4 7 2 <Ref> { Walker.Head.Main } }
+  }
+  <Polygon> {
+    <RGBA> { 1 1 1 1 }
+    <VertexRef> { 5 0 3 6 <Ref> { Walker.Head.Main } }
+  }
+  <Polygon> {
+    <RGBA> { 1 1 1 1 }
+    <VertexRef> { 8 9 10 11 <Ref> { Walker.Head.Main } }
+  }
+  <Polygon> {
+    <RGBA> { 1 1 1 1 }
+    <VertexRef> { 12 13 9 8 <Ref> { Walker.Head.Main } }
+  }
+  <Polygon> {
+    <RGBA> { 1 1 1 1 }
+    <VertexRef> { 9 13 14 10 <Ref> { Walker.Head.Main } }
+  }
+}
+<Group> Walker.Head.Glass {
+  <VertexPool> Walker.Head.Glass {
+    <Vertex> 0 {
+      -1.05964e-07 -0.129233 0.577633
+    }
+    <Vertex> 1 {
+      -0.206204 0.116209 0.309391
+    }
+    <Vertex> 2 {
+      -1.05964e-07 0.36165 0.0411487
+    }
+    <Vertex> 3 {
+      0.206204 0.116209 0.309391
+    }
+    <Vertex> 4 {
+      -1.05964e-07 0.00423298 -0.5573
+    }
+    <Vertex> 5 {
+      0.206204 -0.241209 -0.289058
+    }
+    <Vertex> 6 {
+      -0.206204 -0.241209 -0.289058
+    }
+  }
+  <Polygon> {
+    <RGBA> { 1 1 1 1 }
+    <VertexRef> { 0 1 2 3 <Ref> { Walker.Head.Glass } }
+  }
+  <Polygon> {
+    <RGBA> { 1 1 1 1 }
+    <VertexRef> { 4 5 3 2 <Ref> { Walker.Head.Glass } }
+  }
+  <Polygon> {
+    <RGBA> { 1 1 1 1 }
+    <VertexRef> { 1 6 4 2 <Ref> { Walker.Head.Glass } }
+  }
+}
+<Group> Walker.Head.Tubes {
+  <VertexPool> Walker.Head.Tubes {
+    <Vertex> 0 {
+      0.187371 2.11919e-07 0.8073
+    }
+    <Vertex> 1 {
+      0.249999 -0.0354861 0.8073
+    }
+    <Vertex> 2 {
+      0.249999 -0.0354861 -0.161983
+    }
+    <Vertex> 3 {
+      0.187371 2.11919e-07 -0.161983
+    }
+    <Vertex> 4 {
+      0.312626 2.11919e-07 0.8073
+    }
+    <Vertex> 5 {
+      0.312626 2.11919e-07 -0.161983
+    }
+    <Vertex> 6 {
+      0.249999 0.0354865 0.8073
+    }
+    <Vertex> 7 {
+      0.249999 0.0354865 -0.161983
+    }
+    <Vertex> 8 {
+      -0.312626 1.05964e-07 0.8073
+    }
+    <Vertex> 9 {
+      -0.249999 -0.0354862 0.8073
+    }
+    <Vertex> 10 {
+      -0.249999 -0.0354862 -0.161983
+    }
+    <Vertex> 11 {
+      -0.312626 1.05964e-07 -0.161983
+    }
+    <Vertex> 12 {
+      -0.187371 1.05964e-07 0.8073
+    }
+    <Vertex> 13 {
+      -0.187371 1.05964e-07 -0.161983
+    }
+    <Vertex> 14 {
+      -0.249999 0.0354864 0.8073
+    }
+    <Vertex> 15 {
+      -0.249999 0.0354864 -0.161983
+    }
+  }
+  <Polygon> {
+    <RGBA> { 1 1 1 1 }
+    <VertexRef> { 0 1 2 3 <Ref> { Walker.Head.Tubes } }
+  }
+  <Polygon> {
+    <RGBA> { 1 1 1 1 }
+    <VertexRef> { 1 4 5 2 <Ref> { Walker.Head.Tubes } }
+  }
+  <Polygon> {
+    <RGBA> { 1 1 1 1 }
+    <VertexRef> { 4 6 7 5 <Ref> { Walker.Head.Tubes } }
+  }
+  <Polygon> {
+    <RGBA> { 1 1 1 1 }
+    <VertexRef> { 6 0 3 7 <Ref> { Walker.Head.Tubes } }
+  }
+  <Polygon> {
+    <RGBA> { 1 1 1 1 }
+    <VertexRef> { 6 4 1 0 <Ref> { Walker.Head.Tubes } }
+  }
+  <Polygon> {
+    <RGBA> { 1 1 1 1 }
+    <VertexRef> { 3 2 5 7 <Ref> { Walker.Head.Tubes } }
+  }
+  <Polygon> {
+    <RGBA> { 1 1 1 1 }
+    <VertexRef> { 8 9 10 11 <Ref> { Walker.Head.Tubes } }
+  }
+  <Polygon> {
+    <RGBA> { 1 1 1 1 }
+    <VertexRef> { 9 12 13 10 <Ref> { Walker.Head.Tubes } }
+  }
+  <Polygon> {
+    <RGBA> { 1 1 1 1 }
+    <VertexRef> { 12 14 15 13 <Ref> { Walker.Head.Tubes } }
+  }
+  <Polygon> {
+    <RGBA> { 1 1 1 1 }
+    <VertexRef> { 14 8 11 15 <Ref> { Walker.Head.Tubes } }
+  }
+  <Polygon> {
+    <RGBA> { 1 1 1 1 }
+    <VertexRef> { 14 12 9 8 <Ref> { Walker.Head.Tubes } }
+  }
+  <Polygon> {
+    <RGBA> { 1 1 1 1 }
+    <VertexRef> { 11 10 13 15 <Ref> { Walker.Head.Tubes } }
+  }
+}

@@ -1,0 +1,109 @@
+<CoordinateSystem> { Z-Up }
+
+<Comment> {
+  "dxf2egg grenade.dxf grenade.egg"
+}
+<Group> grenade.yellow {
+  <VertexPool> grenade.yellow {
+    <Vertex> 0 {
+      0.001753 -0.162725 0
+    }
+    <Vertex> 1 {
+      -0.203673 -0.0908 0
+    }
+    <Vertex> 2 {
+      -0.101962 -0.018166 0.177337
+    }
+    <Vertex> 3 {
+      0.103464 -0.090091 0.177337
+    }
+    <Vertex> 4 {
+      -0.101962 -0.018166 -0.177337
+    }
+    <Vertex> 5 {
+      0.103464 -0.090091 -0.177337
+    }
+    <Vertex> 6 {
+      0.205175 -0.017457 0
+    }
+    <Vertex> 7 {
+      -0.000251 0.054468 0
+    }
+  }
+  <Polygon> {
+    <RGBA> { 1 1 1 1 }
+    <VertexRef> { 0 1 2 3 <Ref> { grenade.yellow } }
+  }
+  <Polygon> {
+    <RGBA> { 1 1 1 1 }
+    <VertexRef> { 4 5 6 7 <Ref> { grenade.yellow } }
+  }
+  <Polygon> {
+    <RGBA> { 1 1 1 1 }
+    <VertexRef> { 2 7 6 3 <Ref> { grenade.yellow } }
+  }
+  <Polygon> {
+    <RGBA> { 1 1 1 1 }
+    <VertexRef> { 0 5 4 1 <Ref> { grenade.yellow } }
+  }
+  <Polygon> {
+    <RGBA> { 1 1 1 1 }
+    <VertexRef> { 1 4 7 2 <Ref> { grenade.yellow } }
+  }
+  <Polygon> {
+    <RGBA> { 1 1 1 1 }
+    <VertexRef> { 5 0 3 6 <Ref> { grenade.yellow } }
+  }
+}
+<Group> grenade.red {
+  <VertexPool> grenade.red {
+    <Vertex> 0 {
+      0.000253 -0.054468 -0.000868
+    }
+    <Vertex> 1 {
+      -0.10246 0.017457 0.177045
+    }
+    <Vertex> 2 {
+      0.101966 0.090091 0.177625
+    }
+    <Vertex> 3 {
+      0.204679 0.018166 -0.000288
+    }
+    <Vertex> 4 {
+      -0.205175 0.090091 0.000288
+    }
+    <Vertex> 5 {
+      -0.102462 0.018166 -0.177625
+    }
+    <Vertex> 6 {
+      0.101964 0.0908 -0.177045
+    }
+    <Vertex> 7 {
+      -0.000749 0.162725 0.000868
+    }
+  }
+  <Polygon> {
+    <RGBA> { 1 1 1 1 }
+    <VertexRef> { 0 1 2 3 <Ref> { grenade.red } }
+  }
+  <Polygon> {
+    <RGBA> { 1 1 1 1 }
+    <VertexRef> { 4 5 6 7 <Ref> { grenade.red } }
+  }
+  <Polygon> {
+    <RGBA> { 1 1 1 1 }
+    <VertexRef> { 2 7 6 3 <Ref> { grenade.red } }
+  }
+  <Polygon> {
+    <RGBA> { 1 1 1 1 }
+    <VertexRef> { 0 5 4 1 <Ref> { grenade.red } }
+  }
+  <Polygon> {
+    <RGBA> { 1 1 1 1 }
+    <VertexRef> { 1 4 7 2 <Ref> { grenade.red } }
+  }
+  <Polygon> {
+    <RGBA> { 1 1 1 1 }
+    <VertexRef> { 5 0 3 6 <Ref> { grenade.red } }
+  }
+}
