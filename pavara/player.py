@@ -1,5 +1,5 @@
-from panda3d.core import NodePath, CollisionBox, CollisionNode, CollisionPlane, Plane, Vec3, Point3, KeyboardButton
-from panda3d.physics import LinearVectorForce, ForceNode
+from panda3d.core import NodePath, CollisionBox, CollisionNode, CollisionPlane, Plane, Vec3, Point3, KeyboardButton, TransformState, BitMask32
+from panda3d.bullet import BulletConvexHullShape
 
 from .objects import PhysicalObject
 
@@ -16,53 +16,47 @@ jump_button = KeyboardButton.ascii_key(b' ')
 class Player (PhysicalObject):
 
     def __init__(self):
-        super().__init__(mass=100)
-        self.moving = False
-        self.jumping = False
+        super().__init__()
+        self.body.set_kinematic(True)
+        self.foot_offset = Vec3()
 
-    def setup(self, loader):
-        head = loader.load_model('models/head')
+    def setup(self, world):
+        head = world.load_model('models/head')
         head.set_h(180)
-        head.reparent_to(self.actor_node)
+        head.reparent_to(self.node)
 
-        self.collision_node.node().add_solid(CollisionBox(Point3(0, 0, 0), 0.5, 0.5, 0.5))
+        geom = head.find_all_matches('**/+GeomNode').get_path(0).node().get_geom(0)
+        shape = BulletConvexHullShape()
+        shape.add_geom(geom)
+        self.body.add_shape(shape)
 
-        self.collision_handler.setDynamicFrictionCoef(1.0)
-        self.collision_handler.setStaticFrictionCoef(1.0)
+        self.node.set_color(1, 1, 1, 1)
+        self.node.set_pos(0, 0, 15)
+        self.node.set_scale(2.0)
+        lower, upper = self.node.get_tight_bounds()
+        self.foot_offset = Vec3(0, 0, lower.z)
+        return self.node
 
-        self.force = LinearVectorForce(0, 2000.0, 0)
-        self.force.set_mass_dependent(True)
-        self.thruster = ForceNode('thruster')
-        self.thruster.add_force(self.force)
-        self.actor_node.attach_new_node(self.thruster)
-
-        self.jump_force = LinearVectorForce(0, 0, 10000.0)
-        self.jump_force.set_mass_dependent(True)
-        self.jumper = ForceNode('jumper')
-        self.jumper.add_force(self.jump_force)
-        self.actor_node.attach_new_node(self.jumper)
-
-        self.actor_node.set_pos(0, 0, 10)
-
-    def tick(self, watcher):
-        phys = self.actor.getPhysical(0)
-        if watcher.is_button_down(forward_button):
-            if not self.moving:
-                phys.add_linear_force(self.force)
-                self.moving = True
-        elif self.moving:
-            phys.remove_linear_force(self.force)
-            self.moving = False
-
-        if watcher.is_button_down(jump_button):
-            if not self.jumping:
-                phys.add_linear_force(self.jump_force)
-                self.jumping = True
+    def update(self, world, dt):
+        old_pos = self.node.get_pos()
+        foot = old_pos + self.foot_offset
+        end = foot + Vec3(0, 0, -0.2)
+        result = world.physics.ray_test_closest(foot, end)
+        if result.has_hit():
+            self.on_ground = True
+            new_pos = old_pos
         else:
-            phys.remove_linear_force(self.jump_force)
+            new_pos = old_pos + (world.gravity * dt)
 
-        if watcher.is_button_down(left_button):
-            self.actor_node.set_hpr(self.actor_node, 0.6, 0, 0)
+        goal = new_pos + Vec3(0.2, 0.2, 0)
+        ts_from = TransformState.make_pos(old_pos)
+        ts_to = TransformState.make_pos(goal)
+        result = world.physics.sweep_test_closest(self.body.get_shape(0), ts_from, ts_to, BitMask32.all_on(), 0.0)
+        if result.has_hit():
+            node = result.get_node()
+            if node != self.body:
+                print(result)
 
-        if watcher.is_button_down(right_button):
-            self.actor_node.set_hpr(self.actor_node, -0.6, 0, 0)
+        new_pos = goal
+        if new_pos != old_pos:
+            self.node.set_pos(new_pos)
