@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 
-from pavara.game import Game
 from panda3d.core import loadPrcFile
+
+from pavara.game import Game
+
 
 loadPrcFile('pavara.prc')
 

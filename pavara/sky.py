@@ -1,6 +1,6 @@
 from panda3d.core import Shader
 
-from .constants import *
+from .constants import DEFAULT_GROUND_COLOR, DEFAULT_HORIZON_COLOR, DEFAULT_HORIZON_SCALE, DEFAULT_SKY_COLOR
 
 import math
 

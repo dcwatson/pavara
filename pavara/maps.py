@@ -1,8 +1,7 @@
-from panda3d.core import Vec3, LColor
+from panda3d.core import LColor, Vec3
+import drill
 
 from .objects import Block, Ground
-
-import drill
 
 
 class Map:

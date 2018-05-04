@@ -1,6 +1,5 @@
-from panda3d.physics import ActorNode, PhysicsCollisionHandler
-from panda3d.core import NodePath, CollisionBox, CollisionNode, CollisionPlane, Plane, Vec3, Point3, TransformState, BitMask32
-from panda3d.bullet import BulletRigidBodyNode, BulletBoxShape, BulletGhostNode, BulletPlaneShape
+from panda3d.bullet import BulletBoxShape, BulletGhostNode, BulletPlaneShape, BulletRigidBodyNode
+from panda3d.core import BitMask32, NodePath, Vec3
 
 
 class GameObject:
@@ -28,8 +27,7 @@ class GameObject:
 
 
 class PhysicalObject (GameObject):
-
-    body_class = BulletRigidBodyNode
+    body_class = BulletGhostNode
 
     def __init__(self, name=None):
         super().__init__(name=name)
@@ -51,11 +49,38 @@ class SolidObject (PhysicalObject):
     def __init__(self, mass=0, name=None):
         super().__init__(name=name)
         self.mass = float(mass)
-        self.body.set_mass(self.mass)
+        self.velocity = Vec3()
+        self.moving = False
+        self.resting = False
 
+    def update(self, world, dt):
+        if self.mass == 0:
+            return
 
-class GhostObject (PhysicalObject):
-    body_class = BulletGhostNode
+        self.velocity += (world.gravity * dt)
+
+        old_pos = self.node.get_pos()
+        new_pos = old_pos + (self.velocity * dt)
+
+        self.node.set_pos(new_pos)
+        result = world.physics.contact_test(self.body)
+        if result.get_num_contacts() > 0:
+            best_normal = Vec3()
+            best_dot = 100000.0
+            for contact in result.get_contacts():
+                m = contact.manifold_point
+                normal = m.normal_world_on_b
+                d = self.velocity.dot(normal)
+
+                # Move the object out of each collision.
+                move = normal * self.velocity.dot(normal)
+                move.normalize()
+                self.node.set_pos(self.node, move * m.distance)
+
+                if abs(d) < best_dot:
+                    best_dot = abs(d)
+                    best_normal = normal
+            self.velocity = self.velocity - (best_normal * self.velocity.dot(best_normal))
 
 
 class Block (SolidObject):
@@ -67,13 +92,11 @@ class Block (SolidObject):
         self.color = color
 
     def setup(self, world):
-        self.body.add_shape(BulletBoxShape(Vec3(0.5, 0.5, 0.5)))
-        self.body.set_angular_damping(1.0)
-        self.body.set_restitution(0.0)
+        self.body.add_shape(BulletBoxShape(Vec3(self.size.x / 2.0, self.size.y / 2.0, self.size.z / 2.0)))
         block = world.load_model('models/block')
+        block.set_scale(self.size)
         block.set_color(self.color)
         block.reparent_to(self.node)
-        self.node.set_scale(self.size)
         self.node.set_pos(self.center)
         return self.node
 
@@ -81,10 +104,6 @@ class Block (SolidObject):
 class Ground (SolidObject):
 
     def setup(self, world):
-        #self.body.add_shape(BulletPlaneShape(Vec3(0, 0, 1), 1))
-        self.body.add_shape(BulletBoxShape(Vec3(0.5, 0.5, 0.5)))
-        self.body.set_restitution(0.0)
-        self.node.set_scale(100, 100, 1)
-        self.node.set_pos(0, 0, -0.5)
-        #self.node.set_p(-30)
+        self.body.add_shape(BulletPlaneShape(Vec3(0, 0, 1), 1))
+        self.node.set_pos(0, 0, -3)
         return self.node

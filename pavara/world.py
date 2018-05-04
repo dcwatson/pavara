@@ -1,4 +1,4 @@
-from panda3d.bullet import BulletWorld, BulletDebugNode
+from panda3d.bullet import BulletDebugNode, BulletWorld
 from panda3d.core import NodePath, Vec3
 
 

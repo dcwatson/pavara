@@ -1,9 +1,7 @@
-from panda3d.core import NodePath, CollisionBox, CollisionNode, CollisionPlane, Plane, Vec3, Point3, KeyboardButton, TransformState, BitMask32
 from panda3d.bullet import BulletConvexHullShape
+from panda3d.core import BitMask32, KeyboardButton, TransformState, Vec3
 
 from .objects import PhysicalObject
-
-import math
 
 
 forward_button = KeyboardButton.ascii_key(b'w')

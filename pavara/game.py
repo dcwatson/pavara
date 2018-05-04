@@ -1,14 +1,12 @@
 from direct.showbase.ShowBase import ShowBase
-from panda3d.core import AmbientLight, VBase4, AntialiasAttrib, CollisionTraverser, Point3, ClockObject
-from panda3d.physics import ForceNode, LinearVectorForce
+from panda3d.core import AntialiasAttrib, ClockObject, Vec3
 
 from .maps import load_map
-from .sky import Sky
-from .objects import PhysicalObject
 from .player import Player
 from .world import World
 
 import asyncio
+import random
 import traceback
 
 
@@ -28,20 +26,33 @@ class Game (ShowBase):
         self.world = World(self.loader)
         self.player = Player()
 
-        self.world.attach(self.player)
-        #axis = self.loader.load_model('zup-axis')
-        #axis.reparent_to(self.render)
+        # self.world.attach(self.player)
+
+        # axis = self.loader.load_model('zup-axis')
+        # axis.reparent_to(self.render)
 
         self.camera.set_pos(0, -150, 150)
         self.camera.look_at(0, 0, 0)
+
+        self.accept('f-up', self.explode)
+
+    def explode(self):
+        print("BOOM")
+        for obj in self.world.objects:
+            if hasattr(obj, 'mass') and obj.mass > 0:
+                obj.velocity = Vec3(
+                    random.random() * 3.0,
+                    random.random() * 3.0,
+                    random.random() * 20.0,
+                )
 
     def tick(self):
         try:
             self.world.tick(self.clock.getDt())
 
-            #head = self.player.actor_node.get_pos() + Point3(0, 0, 1.0)
-            #self.camera.set_pos(head)
-            #self.camera.look_at(self.floater)
+            # head = self.player.actor_node.get_pos() + Point3(0, 0, 1.0)
+            # self.camera.set_pos(head)
+            # self.camera.look_at(self.floater)
 
             self.taskMgr.step()
             self.loop.call_soon(self.tick)
