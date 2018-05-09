@@ -1,8 +1,10 @@
-from panda3d.bullet import BulletBoxShape, BulletGhostNode, BulletPlaneShape, BulletRigidBodyNode
-from panda3d.core import BitMask32, NodePath, Vec3
+from panda3d.bullet import BulletBoxShape, BulletGhostNode, BulletPlaneShape
+from panda3d.core import NodePath, Vec3
 
 
 class GameObject:
+    world_id = None
+    dirty = False
 
     def __init__(self, name=None):
         self.name = name or '{}-{}'.format(self.__class__.__name__, id(self))
@@ -25,6 +27,12 @@ class GameObject:
     def collision(self, world, obj):
         pass
 
+    def get_state(self):
+        pass
+
+    def set_state(self, state):
+        pass
+
 
 class PhysicalObject (GameObject):
     body_class = BulletGhostNode
@@ -42,6 +50,16 @@ class PhysicalObject (GameObject):
 
     def removed(self, world):
         world.physics.remove(self.body)
+
+    def get_state(self):
+        pos = self.node.get_pos()
+        return {
+            'pos': (pos.x, pos.y, pos.z),
+        }
+
+    def set_state(self, state):
+        if 'pos' in state:
+            self.node.set_pos(*state['pos'])
 
 
 class SolidObject (PhysicalObject):
@@ -82,6 +100,9 @@ class SolidObject (PhysicalObject):
                     best_normal = normal
             self.velocity = self.velocity - (best_normal * self.velocity.dot(best_normal))
 
+        if old_pos != self.node.get_pos():
+            self.dirty = True
+
 
 class Block (SolidObject):
 
@@ -105,5 +126,4 @@ class Ground (SolidObject):
 
     def setup(self, world):
         self.body.add_shape(BulletPlaneShape(Vec3(0, 0, 1), 1))
-        self.node.set_pos(0, 0, -3)
         return self.node
