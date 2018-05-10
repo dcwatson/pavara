@@ -1,4 +1,3 @@
-from direct.showbase.ShowBase import ShowBase
 from panda3d.core import Vec3, loadPrcFileData
 
 from .log import configure_logging
@@ -30,7 +29,7 @@ class Player:
         self.protocol.send(cmd, **args)
 
 
-class Server (ShowBase):
+class Server:
 
     def __init__(self, opts):
         super().__init__()
@@ -63,16 +62,17 @@ class Server (ShowBase):
             self.broadcast(cmd, **args)
         self.loop.call_later(self.timestep, self.game_loop)
 
-    def run(self):
+    def run(self, run_loop=True):
         logger.debug('Listening on %s:%s', self.opts.addr, self.opts.port)
         coro = self.loop.create_server(lambda: MsgpackProtocol(self), self.opts.addr, self.opts.port)
         self.loop.run_until_complete(coro)
-        try:
-            self.loop.run_forever()
-        except KeyboardInterrupt:
-            pass
-        finally:
-            self.loop.close()
+        if run_loop:
+            try:
+                self.loop.run_forever()
+            except KeyboardInterrupt:
+                pass
+            finally:
+                self.loop.close()
 
     def broadcast(self, cmd, **args):
         for pid, player in self.players.items():
@@ -89,23 +89,27 @@ class Server (ShowBase):
         if self.world:
             return
         self.map_xml = args['xml']
-        self.world = World(self.loader)
+        self.world = World()
         m = load_map(self.map_xml, self.world)
         logger.debug('Player %s loaded map "%s"', player.pid, m.name)
         self.broadcast('loaded', xml=self.map_xml)
 
     def handle_start(self, player, **args):
-        self.game_loop()
-        self.broadcast('started')
+        if self.world and self.world.frame == 0:
+            self.game_loop()
+            self.broadcast('started')
 
     def handle_explode(self, player, **args):
+        if not self.world:
+            return
         for obj in self.world.objects.values():
             if hasattr(obj, 'mass') and obj.mass > 0:
-                obj.velocity = Vec3(
-                    random.random() * 3.0,
-                    random.random() * 3.0,
-                    random.random() * 20.0,
-                )
+                obj.body.set_active(True)
+                obj.body.apply_central_impulse(Vec3(
+                    random.uniform(-5000, 5000),
+                    random.uniform(-5000, 5000),
+                    random.uniform(-5000, 5000),
+                ))
 
 
 if __name__ == '__main__':

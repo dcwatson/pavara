@@ -4,7 +4,7 @@ from panda3d.core import NodePath, Vec3
 
 class World:
 
-    def __init__(self, loader):
+    def __init__(self, loader=None):
         self.loader = loader
         self.physics = BulletWorld()
         self.gravity = Vec3(0, 0, -9.81)
@@ -24,13 +24,11 @@ class World:
 
     def tick(self, dt):
         self.frame += 1
-        self.physics.doPhysics(dt)
-        for obj in self.objects.values():
-            obj.dirty = False
-            obj.update(self, dt)
+        self.physics.doPhysics(dt, 4, 1.0 / 60.0)
         state = {}
         for obj in self.objects.values():
-            if obj.dirty:
+            obj.update(self, dt)
+            if hasattr(obj, 'mass') and obj.mass > 0 and obj.body.is_active():
                 state[obj.world_id] = obj.get_state()
         if state:
             yield 'state', {'frame': self.frame, 'state': state}
@@ -49,7 +47,7 @@ class World:
         """
         Stubbed out here in case we want to allow adding/loading custom models from map XML.
         """
-        return self.loader.load_model(name)
+        return self.loader.load_model(name) if self.loader else None
 
     def get_state(self):
         states = {}
@@ -57,6 +55,6 @@ class World:
             states[world_id] = obj.get_state()
         return states
 
-    def set_state(self, states):
+    def set_state(self, states, fluid=True):
         for world_id, state in states.items():
-            self.objects[world_id].set_state(state)
+            self.objects[world_id].set_state(state, fluid=fluid)

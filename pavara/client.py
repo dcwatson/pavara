@@ -9,6 +9,7 @@ from .world import World
 import argparse
 import asyncio
 import logging
+import math
 import os
 
 
@@ -25,6 +26,7 @@ class Client (ShowBase):
 
         self.loop = asyncio.get_event_loop()
         self.protocol = None
+        self.world = None
 
         self.set_frame_rate_meter(True)
         self.set_background_color(0, 0, 0)
@@ -32,12 +34,14 @@ class Client (ShowBase):
 
         self.render.set_antialias(AntialiasAttrib.M_multisample)
 
-        self.camera.set_pos(0, -150, 150)
+        self.camera.set_pos(0, 0, 200)
         self.camera.look_at(0, 0, 0)
 
         self.accept('l-up', self.load)
         self.accept('r-up', self.start)
         self.accept('f-up', self.explode)
+
+        self.a = 0.0
 
     def load(self):
         with open('maps/icebox-classic.xml', 'r') as f:
@@ -50,6 +54,11 @@ class Client (ShowBase):
         self.protocol.send('explode')
 
     def render_loop(self):
+        self.a += math.pi / 2400.0
+        x = math.cos(self.a) * 130.0
+        y = math.sin(self.a) * 130.0
+        self.camera.set_pos(x, y, 150)
+        self.camera.look_at(0, 0, 0)
         self.taskMgr.step()
         self.loop.call_soon(self.render_loop)
 
@@ -99,7 +108,7 @@ class Client (ShowBase):
         self.world = World(self.loader)
         load_map(args['xml'], self.world)
         if 'state' in args:
-            self.world.set_state(args['state'])
+            self.world.set_state(args['state'], fluid=False)
         self.world.node.reparent_to(self.render)
 
 
@@ -116,5 +125,14 @@ if __name__ == '__main__':
     parser.add_argument('-a', '--addr', default='127.0.0.1')
     parser.add_argument('-p', '--port', type=int, default=19567)
     parser.add_argument('-n', '--name', default='unnamed')
-    client = Client(parser.parse_args())
+    parser.add_argument('-l', '--local', action='store_true', default=False)
+
+    opts = parser.parse_args()
+
+    if opts.local:
+        from .server import Server
+        server = Server(opts)
+        server.run(run_loop=False)
+
+    client = Client(opts)
     client.run()

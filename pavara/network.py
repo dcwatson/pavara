@@ -1,6 +1,7 @@
 import msgpack
 
 import asyncio
+import socket
 import uuid
 
 
@@ -15,6 +16,7 @@ class MsgpackProtocol (asyncio.Protocol):
         self.port = 0
 
     def connection_made(self, transport):
+        transport.get_extra_info('socket').setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
         self.transport = transport
         self.address, self.port = transport.get_extra_info('peername')
         self.delegate.connected(self)

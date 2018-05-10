@@ -1,4 +1,5 @@
-from panda3d.bullet import BulletBoxShape, BulletGhostNode, BulletPlaneShape
+from direct.interval.LerpInterval import LerpPosHprInterval
+from panda3d.bullet import BulletBoxShape, BulletGhostNode, BulletPlaneShape, BulletRigidBodyNode
 from panda3d.core import NodePath, Vec3
 
 
@@ -30,7 +31,7 @@ class GameObject:
     def get_state(self):
         pass
 
-    def set_state(self, state):
+    def set_state(self, state, fluid=True):
         pass
 
 
@@ -53,25 +54,29 @@ class PhysicalObject (GameObject):
 
     def get_state(self):
         pos = self.node.get_pos()
+        hpr = self.node.get_hpr()
         return {
             'pos': (pos.x, pos.y, pos.z),
+            'hpr': (hpr.x, hpr.y, hpr.z),
         }
 
-    def set_state(self, state):
-        if 'pos' in state:
-            self.node.set_pos(*state['pos'])
+    def set_state(self, state, fluid=True):
+        if fluid:
+            LerpPosHprInterval(self.node, 1.0 / 30.0, state['pos'], state['hpr']).start()
+        else:
+            self.node.set_pos_hpr(*state['pos'], *state['hpr'])
 
 
 class SolidObject (PhysicalObject):
+    body_class = BulletRigidBodyNode
 
     def __init__(self, mass=0, name=None):
         super().__init__(name=name)
         self.mass = float(mass)
         self.velocity = Vec3()
-        self.moving = False
-        self.resting = False
+        self.body.set_mass(self.mass)
 
-    def update(self, world, dt):
+    def _update(self, world, dt):
         if self.mass == 0:
             return
 
@@ -114,10 +119,13 @@ class Block (SolidObject):
 
     def setup(self, world):
         self.body.add_shape(BulletBoxShape(Vec3(self.size.x / 2.0, self.size.y / 2.0, self.size.z / 2.0)))
+        self.body.set_angular_damping(1.0)
+        self.body.set_restitution(0.0)
         block = world.load_model('models/block')
-        block.set_scale(self.size)
-        block.set_color(self.color)
-        block.reparent_to(self.node)
+        if block:
+            block.set_scale(self.size)
+            block.set_color(self.color)
+            block.reparent_to(self.node)
         self.node.set_pos(self.center)
         return self.node
 
@@ -125,5 +133,6 @@ class Block (SolidObject):
 class Ground (SolidObject):
 
     def setup(self, world):
-        self.body.add_shape(BulletPlaneShape(Vec3(0, 0, 1), 1))
+        self.body.add_shape(BulletPlaneShape(Vec3(0, 0, 1), 0))
+        self.body.set_restitution(0.0)
         return self.node
