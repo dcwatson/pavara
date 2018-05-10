@@ -64,7 +64,8 @@ class PhysicalObject (GameObject):
         if fluid:
             LerpPosHprInterval(self.node, 1.0 / 30.0, state['pos'], state['hpr']).start()
         else:
-            self.node.set_pos_hpr(*state['pos'], *state['hpr'])
+            poshpr = state['pos'] + state['hpr']
+            self.node.set_pos_hpr(*poshpr)
 
 
 class SolidObject (PhysicalObject):
