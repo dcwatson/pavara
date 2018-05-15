@@ -2,8 +2,8 @@ from direct.showbase.ShowBase import ShowBase
 from panda3d.core import AntialiasAttrib, loadPrcFile, loadPrcFileData
 
 from .log import configure_logging
-from .maps import load_map
 from .network import MsgpackProtocol
+from .objects import GameObject
 from .world import World
 
 import argparse
@@ -11,6 +11,7 @@ import asyncio
 import logging
 import math
 import os
+import sys
 
 
 logger = logging.getLogger('pavara.client')
@@ -26,7 +27,9 @@ class Client (ShowBase):
 
         self.loop = asyncio.get_event_loop()
         self.protocol = None
+        self.pid = None
         self.world = None
+        self.player = None
 
         self.set_frame_rate_meter(True)
         self.set_background_color(0, 0, 0)
@@ -38,14 +41,19 @@ class Client (ShowBase):
         self.camera.look_at(0, 0, 0)
 
         self.accept('l-up', self.load)
-        self.accept('r-up', self.start)
+        self.accept('r-up', self.ready)
+        self.accept('g-up', self.start)
         self.accept('f-up', self.explode)
+        self.accept('escape', sys.exit)
 
         self.a = 0.0
 
     def load(self):
         with open('maps/icebox-classic.xml', 'r') as f:
             self.protocol.send('load', xml=f.read())
+
+    def ready(self):
+        self.protocol.send('ready')
 
     def start(self):
         self.protocol.send('start')
@@ -73,11 +81,6 @@ class Client (ShowBase):
             self.loop.run_forever()
         self.loop.close()
 
-    def load_map(self, xml):
-        self.world = World(self.loader)
-        load_map(xml, self.world)
-        self.world.node.reparent_to(self.render)
-
     # MsgpackProtocol delegate
 
     def connected(self, proto):
@@ -97,8 +100,19 @@ class Client (ShowBase):
         else:
             logger.error('Unknown command: %s', cmd)
 
+    def handle_self(self, **args):
+        self.pid = args['pid']
+
     def handle_joined(self, **args):
         pass
+
+    def handle_started(self, **args):
+        print('STARTED', args)
+
+    def handle_attached(self, **args):
+        for data in args['objects']:
+            print(data)
+            self.world.attach(GameObject.deserialize(data))
 
     def handle_state(self, **args):
         # logger.debug('Got state for frame %s', args['frame'])
@@ -106,7 +120,7 @@ class Client (ShowBase):
 
     def handle_loaded(self, **args):
         self.world = World(self.loader)
-        load_map(args['xml'], self.world)
+        self.world.deserialize(args['objects'])
         if 'state' in args:
             self.world.set_state(args['state'], fluid=False)
         self.world.node.reparent_to(self.render)

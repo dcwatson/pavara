@@ -52,6 +52,11 @@ class Map:
                 ))
             elif xml.tagname == 'ground':
                 world.attach(Ground())
+            elif xml.tagname == 'incarnator':
+                world.add_incarnator(
+                    self.parse_vector(xml['location']),
+                    self.parse_float(xml['heading']),
+                )
             elif xml.tagname == 'set':
                 context.update(xml.attrs)
                 self.load(xml, world, **context)

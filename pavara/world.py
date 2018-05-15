@@ -1,6 +1,8 @@
 from panda3d.bullet import BulletDebugNode, BulletWorld
 from panda3d.core import NodePath, Vec3
 
+from .objects import GameObject
+
 
 class World:
 
@@ -21,14 +23,14 @@ class World:
         self.physics.set_debug_node(self.debug)
         self.frame = 0
         self.last_object_id = 0
+        self.incarnators = []
 
     def tick(self, dt):
         self.frame += 1
         self.physics.doPhysics(dt, 4, 1.0 / 60.0)
         state = {}
         for obj in self.objects.values():
-            obj.update(self, dt)
-            if hasattr(obj, 'mass') and obj.mass > 0 and obj.body.is_active():
+            if obj.update(self, dt):
                 state[obj.world_id] = obj.get_state()
         if state:
             yield 'state', {'frame': self.frame, 'state': state}
@@ -43,11 +45,23 @@ class World:
             node.reparent_to(self.node)
         obj.attached(self)
 
+    def add_incarnator(self, pos, heading):
+        self.incarnators.append((pos, heading))
+
     def load_model(self, name):
         """
         Stubbed out here in case we want to allow adding/loading custom models from map XML.
         """
         return self.loader.load_model(name) if self.loader else None
+
+    def serialize(self):
+        return {world_id: obj.serialize() for world_id, obj in self.objects.items()}
+
+    def deserialize(self, data):
+        self.node.remove_node()
+        self.node = NodePath('world')
+        for world_id, obj_data in data.items():
+            self.attach(GameObject.deserialize(obj_data))
 
     def get_state(self):
         states = {}

@@ -3,6 +3,7 @@ from panda3d.core import Vec3, loadPrcFileData
 from .log import configure_logging
 from .maps import load_map
 from .network import MsgpackProtocol
+from .player import Player
 from .world import World
 
 import argparse
@@ -13,20 +14,6 @@ import random
 
 
 logger = logging.getLogger('pavara.server')
-
-
-class Player:
-
-    def __init__(self, protocol):
-        self.name = 'unnamed'
-        self.protocol = protocol
-
-    @property
-    def pid(self):
-        return self.protocol.pid
-
-    def send(self, cmd, **args):
-        self.protocol.send(cmd, **args)
 
 
 class Server:
@@ -42,7 +29,7 @@ class Server:
 
     def connected(self, proto):
         logger.debug('Player %s connected', proto.pid)
-        self.players[proto.pid] = Player(proto)
+        self.players[proto.pid] = Player(proto.pid, protocol=proto)
 
     def disconnected(self, proto):
         logger.debug('Player %s disconnected', proto.pid)
@@ -81,23 +68,34 @@ class Server:
     def handle_join(self, player, **args):
         player.name = args.get('name', player.name)
         logger.debug('Player %s joined as %s', player.pid, player.name)
+        player.send('self', pid=player.pid)
         self.broadcast('joined', name=player.name, pid=player.pid)
-        if self.world and self.map_xml:
-            player.send('loaded', xml=self.map_xml, state=self.world.get_state())
+        if self.world:
+            player.send('loaded', objects=self.world.serialize())
 
     def handle_load(self, player, **args):
         if self.world:
             return
-        self.map_xml = args['xml']
         self.world = World()
-        m = load_map(self.map_xml, self.world)
+        m = load_map(args['xml'], self.world)
         logger.debug('Player %s loaded map "%s"', player.pid, m.name)
-        self.broadcast('loaded', xml=self.map_xml)
+        self.broadcast('loaded', objects=self.world.serialize())
+
+    def handle_ready(self, player, **args):
+        self.world.attach(player)
+        pos, heading = random.choice(self.world.incarnators)
+        player.node.set_pos(pos)
+        player.node.set_h(heading)
+        self.broadcast('attached', objects=[player.serialize()])
 
     def handle_start(self, player, **args):
         if self.world and self.world.frame == 0:
+            players = {}
+#            incarnators = random.sample(self.world.incarnators, len(self.players))
+#            for idx, pid in enumerate(self.players):
+#                players[pid] = self.players[pid].get_state(incarn=incarnators[idx])
             self.game_loop()
-            self.broadcast('started')
+            self.broadcast('started', players=players)
 
     def handle_explode(self, player, **args):
         if not self.world:
