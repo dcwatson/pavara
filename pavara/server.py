@@ -33,6 +33,8 @@ class Server:
 
     def disconnected(self, proto):
         logger.debug('Player %s disconnected', proto.pid)
+        if self.world:
+            self.world.remove(self.players[proto.pid])
         del self.players[proto.pid]
 
     def handle(self, proto, cmd, **args):
@@ -82,6 +84,8 @@ class Server:
         self.broadcast('loaded', objects=self.world.serialize())
 
     def handle_ready(self, player, **args):
+        if player.world_id in self.world.objects:
+            return
         self.world.attach(player)
         pos, heading = random.choice(self.world.incarnators)
         player.node.set_pos(pos)
@@ -96,6 +100,9 @@ class Server:
 #                players[pid] = self.players[pid].get_state(incarn=incarnators[idx])
             self.game_loop()
             self.broadcast('started', players=players)
+
+    def handle_input(self, player, **args):
+        player.input(args['input'], args['pressed'])
 
     def handle_explode(self, player, **args):
         if not self.world:

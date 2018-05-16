@@ -6,24 +6,26 @@ from .objects import GameObject
 
 class World:
 
-    def __init__(self, loader=None):
+    def __init__(self, loader=None, debug=False):
         self.loader = loader
         self.physics = BulletWorld()
         self.gravity = Vec3(0, 0, -9.81)
         self.physics.set_gravity(self.gravity)
         self.objects = {}
-        self.node = NodePath('world')
-        # Debug node
-        self.debug = BulletDebugNode('Debug')
-        self.debug.show_wireframe(True)
-        # self.debug.show_constraints(True)
-        # self.debug.show_bounding_boxes(True)
-        self.debug.show_normals(True)
-        self.node.attach_new_node(self.debug).show()
-        self.physics.set_debug_node(self.debug)
         self.frame = 0
         self.last_object_id = 0
         self.incarnators = []
+        self.debug = debug
+        self.setup()
+
+    def setup(self):
+        self.node = NodePath('world')
+        if self.debug:
+            d = BulletDebugNode('Debug')
+            d.show_wireframe(True)
+            d.show_normals(True)
+            self.node.attach_new_node(d).show()
+            self.physics.set_debug_node(d)
 
     def tick(self, dt):
         self.frame += 1
@@ -36,14 +38,18 @@ class World:
             yield 'state', {'frame': self.frame, 'state': state}
 
     def attach(self, obj):
+        obj.setup(self)
         if obj.world_id is None:
             self.last_object_id += 1
             obj.world_id = self.last_object_id
         self.objects[obj.world_id] = obj
-        node = obj.setup(self)
-        if node:
-            node.reparent_to(self.node)
         obj.attached(self)
+
+    def remove(self, obj):
+        if obj.world_id not in self.objects:
+            return
+        del self.objects[obj.world_id]
+        obj.removed(self)
 
     def add_incarnator(self, pos, heading):
         self.incarnators.append((pos, heading))
@@ -59,7 +65,7 @@ class World:
 
     def deserialize(self, data):
         self.node.remove_node()
-        self.node = NodePath('world')
+        self.setup()
         for world_id, obj_data in data.items():
             self.attach(GameObject.deserialize(obj_data))
 

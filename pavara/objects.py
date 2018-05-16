@@ -2,6 +2,8 @@ from direct.interval.LerpInterval import LerpPosHprInterval
 from panda3d.bullet import BulletBoxShape, BulletGhostNode, BulletPlaneShape, BulletRigidBodyNode
 from panda3d.core import NodePath, Vec3
 
+from .constants import Collision
+
 import importlib
 
 
@@ -43,7 +45,6 @@ class GameObject:
         module = importlib.import_module(module_path)
         world_id = data.pop('world_id')
         state = data.pop('state')
-        print('{}({})'.format(class_name, data))
         obj = getattr(module, class_name)(**data)
         obj.world_id = world_id
         obj.set_state(state, fluid=False)
@@ -62,16 +63,16 @@ class PhysicalObject (GameObject):
     def __init__(self, name=None):
         super().__init__(name=name)
         self.body = self.body_class('{}-Body'.format(self.name))
+        self.body.set_into_collide_mask(Collision.GHOST)
         self.node = NodePath(self.body)
-
-    def setup(self, world):
-        return self.node
 
     def attached(self, world):
         world.physics.attach(self.body)
+        self.node.reparent_to(world.node)
 
     def removed(self, world):
         world.physics.remove(self.body)
+        self.node.remove_node()
 
     def get_state(self):
         return {
@@ -95,6 +96,7 @@ class SolidObject (PhysicalObject):
         self.mass = float(mass)
         self.velocity = Vec3()
         self.body.set_mass(self.mass)
+        self.body.set_into_collide_mask(Collision.SOLID)
 
     def serialize(self):
         data = super().serialize()
@@ -105,38 +107,6 @@ class SolidObject (PhysicalObject):
 
     def update(self, world, dt):
         return self.body.is_active()
-
-    def _update(self, world, dt):
-        if self.mass == 0:
-            return
-
-        self.velocity += (world.gravity * dt)
-
-        old_pos = self.node.get_pos()
-        new_pos = old_pos + (self.velocity * dt)
-
-        self.node.set_pos(new_pos)
-        result = world.physics.contact_test(self.body)
-        if result.get_num_contacts() > 0:
-            best_normal = Vec3()
-            best_dot = 100000.0
-            for contact in result.get_contacts():
-                m = contact.manifold_point
-                normal = m.normal_world_on_b
-                d = self.velocity.dot(normal)
-
-                # Move the object out of each collision.
-                move = normal * self.velocity.dot(normal)
-                move.normalize()
-                self.node.set_pos(self.node, move * m.distance)
-
-                if abs(d) < best_dot:
-                    best_dot = abs(d)
-                    best_normal = normal
-            self.velocity = self.velocity - (best_normal * self.velocity.dot(best_normal))
-
-        if old_pos != self.node.get_pos():
-            self.dirty = True
 
 
 class Block (SolidObject):
@@ -166,7 +136,6 @@ class Block (SolidObject):
             block.set_color(self.color)
             block.reparent_to(self.node)
         self.node.set_pos(self.center)
-        return self.node
 
 
 class Ground (SolidObject):
@@ -174,4 +143,3 @@ class Ground (SolidObject):
     def setup(self, world):
         self.body.add_shape(BulletPlaneShape(Vec3(0, 0, 1), 0))
         self.body.set_restitution(0.0)
-        return self.node

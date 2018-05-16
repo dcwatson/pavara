@@ -10,6 +10,7 @@ DEFAULT_HORIZON_SCALE = 0.05
 
 class Collision:
     NONE = BitMask32.all_off()
-    MAP = BitMask32.bit(0)
-    SOLID = BitMask32.bit(1)
+    SOLID = BitMask32.bit(0)
+    GHOST = BitMask32.bit(1)
+    PLAYER = BitMask32.bit(2)
     ALL = BitMask32.all_on()
