@@ -1,6 +1,7 @@
 from panda3d.bullet import BulletDebugNode, BulletWorld
-from panda3d.core import NodePath, Vec3
+from panda3d.core import AmbientLight, DirectionalLight, LColor, NodePath, Vec3
 
+from .constants import DEFAULT_AMBIENT_COLOR
 from .objects import GameObject
 
 
@@ -26,6 +27,15 @@ class World:
             d.show_normals(True)
             self.node.attach_new_node(d).show()
             self.physics.set_debug_node(d)
+        alight = AmbientLight('ambient')
+        alight.set_color(DEFAULT_AMBIENT_COLOR)
+        self.ambient = self.node.attach_new_node(alight)
+        self.node.set_light(self.ambient)
+        dlight = DirectionalLight('celestial')
+        dlight.set_color(LColor(0.7, 0.7, 0.7, 1))
+        self.directional = self.node.attach_new_node(dlight)
+        self.directional.look_at(0, -1, -1)
+        self.node.set_light(self.directional)
 
     def tick(self, dt):
         self.frame += 1

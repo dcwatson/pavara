@@ -1,10 +1,10 @@
-from panda3d.core import BitMask32
+from panda3d.core import BitMask32, LColor
 
 
-DEFAULT_AMBIENT_COLOR = (0.4, 0.4, 0.4, 1)
-DEFAULT_GROUND_COLOR = (0, 0, 0.15, 1)
-DEFAULT_SKY_COLOR = (0, 0, 0.15, 1)
-DEFAULT_HORIZON_COLOR = (0, 0, 0.8, 1)
+DEFAULT_AMBIENT_COLOR = LColor(0.4, 0.4, 0.4, 1)
+DEFAULT_GROUND_COLOR = LColor(0, 0, 0.15, 1)
+DEFAULT_SKY_COLOR = LColor(0, 0, 0.15, 1)
+DEFAULT_HORIZON_COLOR = LColor(0, 0, 0.8, 1)
 DEFAULT_HORIZON_SCALE = 0.05
 
 

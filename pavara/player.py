@@ -8,23 +8,30 @@ import math
 
 
 class Player (PhysicalObject):
-    TURN_SPEED = 360.0  # deg/sec
-    WALK_SPEED = 6.0  # m/sec
+    TURN_SPEED = 60.0  # deg/sec
+    WALK_SPEED = 10.0  # m/sec
 
     def __init__(self, pid, name=None, protocol=None):
         super().__init__(name=name)
         self.pid = pid
+        self.world_id = pid
         self.protocol = protocol
-        self.camera_pos = Vec3(0, 0, 1.25)
         self.velocity = Vec3(0, 0, 0)
         self.resting = False
         self.body.set_into_collide_mask(Collision.PLAYER)
+        self.floater = self.node.attach_new_node('floater')
+        self.floater.set_pos(0, 1, 1.5)
         self.motion = {
             'forward': False,
             'backward': False,
             'left': False,
             'right': False,
         }
+
+    def update_camera(self, world, camera):
+        pos = self.node.get_pos() + Vec3(0, 0, 1.5)
+        camera.set_pos(pos)
+        camera.look_at(self.floater.get_pos(world.node))
 
     def setup(self, world):
         self.body.add_shape(BulletBoxShape(Vec3(0.5, 0.5, 0.5)))

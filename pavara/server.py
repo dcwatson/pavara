@@ -38,7 +38,7 @@ class Server:
         del self.players[proto.pid]
 
     def handle(self, proto, cmd, **args):
-        logger.debug('Message received from Player %s: %s', proto.pid, cmd)
+        # logger.debug('Message received from Player %s: %s', proto.pid, cmd)
         player = self.players[proto.pid]
         func = getattr(self, 'handle_{}'.format(cmd), None)
         if func:

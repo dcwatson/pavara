@@ -23,7 +23,7 @@ class Client (ShowBase):
         super().__init__()
 
         self.opts = opts
-        self.throttle = 1.0 / 100.0
+        self.throttle = 1.0 / opts.throttle
 
         self.loop = asyncio.get_event_loop()
         self.protocol = None
@@ -76,11 +76,14 @@ class Client (ShowBase):
 
     def render_loop(self):
         next_call = self.loop.time() + self.throttle
-        self.a += math.pi / 2400.0
-        x = math.cos(self.a) * 130.0
-        y = math.sin(self.a) * 130.0
-        self.camera.set_pos(x, y, 150)
-        self.camera.look_at(0, 0, 0)
+        if self.player:
+            self.player.update_camera(self.world, self.camera)
+        else:
+            self.a += math.pi / 2400.0
+            x = math.cos(self.a) * 130.0
+            y = math.sin(self.a) * 130.0
+            self.camera.set_pos(x, y, 150)
+            self.camera.look_at(0, 0, 0)
         self.taskMgr.step()
         if self.world and self.opts.debug:
             # This is just so the BulletWorld draws the debug node.
@@ -124,7 +127,7 @@ class Client (ShowBase):
         pass
 
     def handle_started(self, **args):
-        pass
+        self.player = self.world.objects[self.pid]
 
     def handle_attached(self, **args):
         for data in args['objects']:
@@ -162,6 +165,7 @@ if __name__ == '__main__':
     parser.add_argument('-n', '--name', default='unnamed')
     parser.add_argument('-l', '--local', action='store_true', default=False)
     parser.add_argument('-d', '--debug', action='store_true', default=False)
+    parser.add_argument('-t', '--throttle', type=float, default=100.0)
 
     opts = parser.parse_args()
 

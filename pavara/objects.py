@@ -3,6 +3,7 @@ from panda3d.bullet import BulletBoxShape, BulletGhostNode, BulletPlaneShape, Bu
 from panda3d.core import NodePath, Vec3
 
 from .constants import Collision
+from .geom import GeomBuilder
 
 import importlib
 
@@ -127,11 +128,7 @@ class Block (SolidObject):
         self.body.add_shape(BulletBoxShape(Vec3(self.size.x / 2.0, self.size.y / 2.0, self.size.z / 2.0)))
         self.body.set_angular_damping(1.0)
         self.body.set_restitution(0.0)
-        block = world.load_model('models/block')
-        if block:
-            block.set_scale(self.size)
-            block.set_color(self.color)
-            block.reparent_to(self.node)
+        self.node.attach_new_node(GeomBuilder(self.name).add_block(self.color, (0, 0, 0), self.size).get_geom_node())
         self.node.set_pos(self.center)
 
 
