@@ -73,7 +73,7 @@ class Server:
         player.send('self', pid=player.pid)
         self.broadcast('joined', name=player.name, pid=player.pid)
         if self.world:
-            player.send('loaded', objects=self.world.serialize())
+            player.send('loaded', objects=self.world.serialize(), state=self.world.get_state())
 
     def handle_load(self, player, **args):
         if self.world:
@@ -90,7 +90,9 @@ class Server:
         pos, heading = random.choice(self.world.incarnators)
         player.node.set_pos(pos)
         player.node.set_h(heading)
-        self.broadcast('attached', objects=[player.serialize()])
+        self.broadcast('attached', objects=[player.serialize()], state={
+            player.world_id: player.get_state(),
+        })
 
     def handle_start(self, player, **args):
         if self.world and self.world.frame == 0:

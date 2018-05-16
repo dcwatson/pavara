@@ -36,7 +36,6 @@ class GameObject:
             '__class__': '{}.{}'.format(self.__module__, self.__class__.__name__),
             'world_id': self.world_id,
             'name': self.name,
-            'state': self.get_state(),
         }
 
     @classmethod
@@ -44,10 +43,8 @@ class GameObject:
         module_path, class_name = data.pop('__class__').rsplit('.', 1)
         module = importlib.import_module(module_path)
         world_id = data.pop('world_id')
-        state = data.pop('state')
         obj = getattr(module, class_name)(**data)
         obj.world_id = world_id
-        obj.set_state(state, fluid=False)
         return obj
 
     def get_state(self):

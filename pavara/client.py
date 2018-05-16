@@ -129,8 +129,10 @@ class Client (ShowBase):
     def handle_attached(self, **args):
         for data in args['objects']:
             self.world.attach(GameObject.deserialize(data))
+        if 'state' in args:
+            self.world.set_state(args['state'], fluid=False)
 
-    def handle_detached(self, **args):
+    def handle_removed(self, **args):
         pass
 
     def handle_state(self, **args):
