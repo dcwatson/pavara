@@ -1,8 +1,11 @@
 from panda3d.bullet import BulletDebugNode, BulletWorld
-from panda3d.core import AmbientLight, DirectionalLight, LColor, NodePath, Vec3
+from panda3d.core import AmbientLight, DirectionalLight, NodePath, Vec3
 
 from .constants import DEFAULT_AMBIENT_COLOR
+from .geom import to_cartesian
 from .objects import GameObject
+
+import math
 
 
 class World:
@@ -27,15 +30,14 @@ class World:
             d.show_normals(True)
             self.node.attach_new_node(d).show()
             self.physics.set_debug_node(d)
+        # Default ambient light
         alight = AmbientLight('ambient')
         alight.set_color(DEFAULT_AMBIENT_COLOR)
         self.ambient = self.node.attach_new_node(alight)
         self.node.set_light(self.ambient)
-        dlight = DirectionalLight('celestial')
-        dlight.set_color(LColor(0.7, 0.7, 0.7, 1))
-        self.directional = self.node.attach_new_node(dlight)
-        self.directional.look_at(0, -1, -1)
-        self.node.set_light(self.directional)
+        # Default directional lights
+        self.add_celestial(math.radians(20), math.radians(45), (1, 1, 1, 1), 0.4, 30.0)
+        self.add_celestial(math.radians(200), math.radians(20), (1, 1, 1, 1), 0.3, 30.0)
 
     def tick(self, dt):
         self.frame += 1
@@ -88,3 +90,12 @@ class World:
     def set_state(self, states, fluid=True):
         for world_id, state in states.items():
             self.objects[world_id].set_state(state, fluid=fluid)
+
+    def add_celestial(self, azimuth, elevation, color, intensity, radius):
+        location = Vec3(to_cartesian(azimuth, elevation, 1000.0 * 255.0 / 256.0))
+        if intensity:
+            dlight = DirectionalLight('celestial')
+            dlight.set_color((color[0] * intensity, color[1] * intensity, color[2] * intensity, 1.0))
+            node = self.node.attach_new_node(dlight)
+            node.look_at(*(location * -1))
+            self.node.set_light(node)
