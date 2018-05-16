@@ -22,7 +22,7 @@ class Player (PhysicalObject):
         self.resting = False
         self.body.set_into_collide_mask(Collision.PLAYER)
         self.floater = self.node.attach_new_node('floater')
-        self.floater.set_pos(0, 1, 1.5)
+        self.floater.set_pos(0, 1, 1.75)
         self.motion = {
             'forward': False,
             'backward': False,
@@ -33,7 +33,7 @@ class Player (PhysicalObject):
         self.motor_power = 0.0
 
     def update_camera(self, world, camera):
-        pos = self.node.get_pos() + Vec3(0, 0, 1.5)
+        pos = self.node.get_pos() + Vec3(0, 0, 1.75)
         camera.set_pos(pos)
         camera.look_at(self.floater.get_pos(world.node))
 
@@ -99,7 +99,15 @@ class Player (PhysicalObject):
                 new_velocity.set_y(0)
 
         new_pos = old_pos + (new_velocity * dt)
+        self.node.set_pos(new_pos)
 
+        result = world.physics.contact_test(self.body)
+        for contact in result.get_contacts():
+            m = contact.manifold_point
+            normal = m.normal_world_on_b
+            new_velocity = new_velocity - (normal * new_velocity.dot(normal))
+
+        new_pos = old_pos + (new_velocity * dt)
         end = new_pos + Vec3(0, 0, -0.7)
         result = world.physics.ray_test_closest(new_pos, end, Collision.SOLID)
         if result.has_hit():
@@ -110,16 +118,8 @@ class Player (PhysicalObject):
             self.resting = False
 
         self.node.set_pos(new_pos)
-
-        result = world.physics.contact_test(self.body)
-        for contact in result.get_contacts():
-            m = contact.manifold_point
-            normal = m.normal_world_on_b
-            new_velocity = new_velocity - (normal * new_velocity.dot(normal))
-
-        new_pos = old_pos + (new_velocity * dt)
-        self.node.set_pos(new_pos)
         self.velocity = new_velocity
         if old_pos != new_pos:
             dirty = True
+
         return dirty
