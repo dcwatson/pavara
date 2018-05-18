@@ -1,3 +1,3 @@
-win-size 1024 600
+win-size 1920 1080
 multisamples 8
 sync-video 1

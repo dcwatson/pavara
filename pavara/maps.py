@@ -1,7 +1,9 @@
 from panda3d.core import LColor, Vec3
 import drill
 
-from .objects import Block, Ground
+from .constants import DEFAULT_GROUND_COLOR, DEFAULT_HORIZON_COLOR, DEFAULT_HORIZON_SCALE, DEFAULT_SKY_COLOR
+from .objects import Block, Ground, Ramp
+from .sky import Sky
 
 
 class Map:
@@ -36,12 +38,13 @@ class Map:
         else:
             raise ValueError('Invalid color specification: "{}"'.format(s))
 
-    def parse_float(self, s, default=None):
+    def parse_float(self, s, default=0.0):
         if s is None or not s.strip():
             return float(default) if isinstance(default, str) else default
         return float(s)
 
     def load(self, root, world, **context):
+        sky = None
         for xml in root:
             if xml.tagname == 'block':
                 world.attach(Block(
@@ -50,8 +53,27 @@ class Map:
                     self.parse_color(xml['color']),
                     self.parse_float(xml.attrs.get('mass'), default=context.get('mass', 0)),
                 ))
+            elif xml.tagname == 'ramp':
+                world.attach(Ramp(
+                    self.parse_vector(xml['base']),
+                    self.parse_vector(xml['top']),
+                    self.parse_float(xml.attrs.get('width'), 8),
+                    self.parse_float(xml.attrs.get('thickness')),
+                    self.parse_color(xml.attrs.get('color')),
+                    Vec3(
+                        self.parse_float(xml.attrs.get('yaw')),
+                        self.parse_float(xml.attrs.get('pitch')),
+                        self.parse_float(xml.attrs.get('roll'))
+                    )
+                ))
             elif xml.tagname == 'ground':
+                sky.set_ground_color(self.parse_color(xml.attrs.get('color'), DEFAULT_GROUND_COLOR))
                 world.attach(Ground())
+            elif xml.tagname == 'sky':
+                sky = world.attach(Sky(
+                    self.parse_color(xml.attrs.get('color'), DEFAULT_SKY_COLOR),
+                    self.parse_color(xml.attrs.get('horizon'), DEFAULT_HORIZON_COLOR),
+                ))
             elif xml.tagname == 'incarnator':
                 world.add_incarnator(
                     self.parse_vector(xml['location']),

@@ -25,10 +25,10 @@
     <block size="6,20,6" center="37,10,-37" color="0.2,0.4,1"/>
     <block size="6,20,6" center="37,10,37" color="0.2,0.4,1"/>
     <block size="6,20,6" center="-37,10,37" color="0.2,0.4,1"/>
-    <block size="6,3,6" center="-31,1.5,-31" color="0.2,0.4,1"/>
-    <block size="6,3,6" center="31,1.5,-31" color="0.2,0.4,1"/>
-    <block size="6,3,6" center="31,1.5,31" color="0.2,0.4,1"/>
-    <block size="6,3,6" center="-31,1.5,31" color="0.2,0.4,1"/>
+    <block size="6,2.5,6" center="-31,1.25,-31" color="0.2,0.4,1"/>
+    <block size="6,2.5,6" center="31,1.25,-31" color="0.2,0.4,1"/>
+    <block size="6,2.5,6" center="31,1.25,31" color="0.2,0.4,1"/>
+    <block size="6,2.5,6" center="-31,1.25,31" color="0.2,0.4,1"/>
 
     <!-- ICE CUBES -->
     <set mass="300">

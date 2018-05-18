@@ -144,12 +144,12 @@ class GeomBuilder(object):
         if midpoint != Point3(0, 0, 0):
             base = Point3(base - (midpoint - Point3(0, 0, 0)))
             top = Point3(top - (midpoint - Point3(0, 0, 0)))
-        p3 = Point3(top.get_x(), top.get_y() - thickness, top.get_z())
-        p4 = Point3(base.get_x(), base.get_y() - thickness, base.get_z())
+        p3 = Point3(top.get_x(), top.get_y(), top.get_z() - thickness)
+        p4 = Point3(base.get_x(), base.get_y(), base.get_z() - thickness)
 
         # Use three points to calculate an offset vector we can apply to `base`
         # and `top` in order to find the required vertices.
-        offset = (Point3(top + Vec3(0, -1000, 0)) - base).cross(top - base)
+        offset = (Point3(top + Vec3(0, 0, -1000)) - base).cross(top - base)
         offset.normalize()
         offset *= (width / 2.0)
 

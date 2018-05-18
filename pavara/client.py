@@ -59,7 +59,7 @@ class Client (ShowBase):
         self.a = 0.0
 
     def load(self):
-        with open('maps/icebox-classic.xml', 'r') as f:
+        with open('maps/coromoran.xml', 'r') as f:
             self.protocol.send('load', xml=f.read())
 
     def ready(self):
@@ -153,7 +153,7 @@ class Client (ShowBase):
 if __name__ == '__main__':
     configure_logging()
 
-    pavara_root = os.path.dirname(os.path.abspath(__name__))
+    pavara_root = os.path.dirname(os.path.abspath(__name__)).replace('\\', '/').replace('C:', '/c')
     loadPrcFile(os.path.join(pavara_root, 'pavara.prc'))
     loadPrcFileData('', """
         model-path %s

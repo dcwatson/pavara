@@ -8,10 +8,10 @@ import math
 
 
 class Player (PhysicalObject):
-    TURN_ACCEL = 0.5  # seconds to reach TURN_SPEED
-    TURN_SPEED = 60.0  # deg/sec
-    WALK_ACCEL = 0.5  # seconds to reach WALK_SPEED
-    WALK_SPEED = 10.0  # m/sec
+    TURN_ACCEL = 0.1  # seconds to reach TURN_SPEED
+    TURN_SPEED = 90.0  # deg/sec
+    WALK_ACCEL = 0.25  # seconds to reach WALK_SPEED
+    WALK_SPEED = 20.0  # m/sec
 
     def __init__(self, pid, name=None, protocol=None):
         super().__init__(name=name)
@@ -66,18 +66,6 @@ class Player (PhysicalObject):
         h = self.node.get_h()
         new_velocity = self.velocity + (world.gravity * dt)
 
-        if not (self.motion['left'] ^ self.motion['right']):
-            self.turn_power /= 1.5
-            if abs(self.turn_power) < 0.05:
-                self.turn_power = 0.0
-        elif self.motion['left']:
-            self.turn_power = min(max(self.turn_power, 0) + (dt / self.TURN_ACCEL), 1.0)
-        elif self.motion['right']:
-            self.turn_power = max(min(self.turn_power, 0) - (dt / self.TURN_ACCEL), -1.0)
-        dirty = self.turn_power != 0
-        h += self.TURN_SPEED * dt * self.turn_power
-        self.node.set_h(h)
-
         if self.resting:
             if not (self.motion['forward'] ^ self.motion['backward']):
                 self.motor_power /= 1.5
@@ -87,16 +75,34 @@ class Player (PhysicalObject):
                 self.motor_power = min(max(self.motor_power, 0) + (dt / self.WALK_ACCEL), 1.0)
             elif self.motion['backward']:
                 self.motor_power = max(min(self.motor_power, 0) - (dt / self.WALK_ACCEL), -1.0)
+        else:
+            self.motor_power /= 1.5
+            if abs(self.motor_power) < 0.05:
+                self.motor_power = 0.0
 
-            if self.motor_power != 0:
-                # Panda's heading starts along the Y axis, so we need to rotate 90 degrees to start along X.
-                x = math.cos(math.radians(h + 90)) * self.WALK_SPEED * self.motor_power
-                y = math.sin(math.radians(h + 90)) * self.WALK_SPEED * self.motor_power
-                new_velocity.set_x(x)
-                new_velocity.set_y(y)
-            else:
-                new_velocity.set_x(0)
-                new_velocity.set_y(0)
+        if not (self.motion['left'] ^ self.motion['right']):
+            self.turn_power /= 1.5
+            if abs(self.turn_power) < 0.05:
+                self.turn_power = 0.0
+        elif self.motion['left']:
+            self.turn_power = min(max(self.turn_power, 0) + (dt / self.TURN_ACCEL), 1.0)
+        elif self.motion['right']:
+            self.turn_power = max(min(self.turn_power, 0) - (dt / self.TURN_ACCEL), -1.0)
+
+        self.turn_power /= ((abs(self.motor_power) * 1.0) + 1.0)
+        dirty = (abs(self.turn_power) + abs(self.motor_power)) > 0
+        h += self.TURN_SPEED * dt * self.turn_power
+        self.node.set_h(h)
+
+        if self.motor_power != 0:
+            # Panda's heading starts along the Y axis, so we need to rotate 90 degrees to start along X.
+            x = math.cos(math.radians(h + 90)) * self.WALK_SPEED * self.motor_power
+            y = math.sin(math.radians(h + 90)) * self.WALK_SPEED * self.motor_power
+            new_velocity.set_x(x)
+            new_velocity.set_y(y)
+        else:
+            new_velocity.set_x(0)
+            new_velocity.set_y(0)
 
         new_pos = old_pos + (new_velocity * dt)
         self.node.set_pos(new_pos)

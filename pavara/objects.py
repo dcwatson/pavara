@@ -1,6 +1,6 @@
 from direct.interval.LerpInterval import LerpPosHprInterval
-from panda3d.bullet import BulletBoxShape, BulletGhostNode, BulletPlaneShape, BulletRigidBodyNode
-from panda3d.core import NodePath, Vec3
+from panda3d.bullet import BulletBoxShape, BulletConvexHullShape, BulletGhostNode, BulletPlaneShape, BulletRigidBodyNode
+from panda3d.core import NodePath, Point3, Vec3
 
 from .constants import Collision
 from .geom import GeomBuilder
@@ -128,8 +128,46 @@ class Block (SolidObject):
         self.body.add_shape(BulletBoxShape(Vec3(self.size.x / 2.0, self.size.y / 2.0, self.size.z / 2.0)))
         self.body.set_angular_damping(1.0)
         self.body.set_restitution(0.0)
-        self.node.attach_new_node(GeomBuilder(self.name).add_block(self.color, (0, 0, 0), self.size).get_geom_node())
+        self.node.attach_new_node(GeomBuilder().add_block(self.color, (0, 0, 0), self.size).get_geom_node())
         self.node.set_pos(self.center)
+
+
+class Ramp (SolidObject):
+
+    def __init__(self, base, top, width, thickness, color, ypr, mass=0, name=None):
+        super().__init__(name=name)
+        self.base = base
+        self.top = top
+        self.width = width
+        self.thickness = thickness
+        self.color = color
+        self.ypr = ypr
+        self.midpoint = Point3((self.base + self.top) / 2.0)
+
+    def serialize(self):
+        data = super().serialize()
+        data.update({
+            'base': self.base,
+            'top': self.top,
+            'width': self.width,
+            'thickness': self.thickness,
+            'color': self.color,
+            'ypr': self.ypr,
+        })
+        return data
+
+    def setup(self, world):
+        rel_base = Point3(self.base - (self.midpoint - Point3(0, 0, 0)))
+        rel_top = Point3(self.top - (self.midpoint - Point3(0, 0, 0)))
+        self.geom = GeomBuilder().add_ramp(self.color, rel_base, rel_top, self.width, self.thickness).get_geom_node()
+        self.node.attach_new_node(self.geom)
+
+        shape = BulletConvexHullShape()
+        shape.add_geom(self.geom.get_geom(0))
+        self.body.add_shape(shape)
+
+        self.node.set_pos(self.midpoint)
+        self.node.set_hpr(self.ypr)
 
 
 class Ground (SolidObject):

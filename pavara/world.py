@@ -4,7 +4,6 @@ from panda3d.core import AmbientLight, DirectionalLight, NodePath, Vec3
 from .constants import DEFAULT_AMBIENT_COLOR
 from .geom import to_cartesian
 from .objects import GameObject
-from .sky import Sky
 
 import math
 
@@ -18,7 +17,6 @@ class World:
         self.gravity = Vec3(0, 0, -9.81)
         self.physics.set_gravity(self.gravity)
         self.objects = {}
-        self.sky = Sky(camera)
         self.frame = 0
         self.last_object_id = 0
         self.incarnators = []
@@ -34,7 +32,8 @@ class World:
             self.node.attach_new_node(d).show()
             self.physics.set_debug_node(d)
         if self.camera:
-            self.camera.node().get_lens().set_fov(35.0)
+            self.camera.node().get_lens().set_fov(80.0, 60.0)
+            self.camera.node().get_lens().set_near(0.1)
         # Default ambient light
         alight = AmbientLight('ambient')
         alight.set_color(DEFAULT_AMBIENT_COLOR)
@@ -61,6 +60,7 @@ class World:
             obj.world_id = self.last_object_id
         self.objects[obj.world_id] = obj
         obj.attached(self)
+        return obj
 
     def remove(self, obj):
         if obj.world_id not in self.objects:
