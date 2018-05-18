@@ -143,7 +143,7 @@ class Client (ShowBase):
         self.world.set_state(args['state'])
 
     def handle_loaded(self, **args):
-        self.world = World(self.loader, debug=self.opts.debug)
+        self.world = World(loader=self.loader, camera=self.cam, debug=self.opts.debug)
         self.world.deserialize(args['objects'])
         if 'state' in args:
             self.world.set_state(args['state'], fluid=False)

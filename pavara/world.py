@@ -4,18 +4,21 @@ from panda3d.core import AmbientLight, DirectionalLight, NodePath, Vec3
 from .constants import DEFAULT_AMBIENT_COLOR
 from .geom import to_cartesian
 from .objects import GameObject
+from .sky import Sky
 
 import math
 
 
 class World:
 
-    def __init__(self, loader=None, debug=False):
+    def __init__(self, loader=None, camera=None, debug=False):
         self.loader = loader
+        self.camera = camera
         self.physics = BulletWorld()
         self.gravity = Vec3(0, 0, -9.81)
         self.physics.set_gravity(self.gravity)
         self.objects = {}
+        self.sky = Sky(camera)
         self.frame = 0
         self.last_object_id = 0
         self.incarnators = []
@@ -30,6 +33,8 @@ class World:
             d.show_normals(True)
             self.node.attach_new_node(d).show()
             self.physics.set_debug_node(d)
+        if self.camera:
+            self.camera.node().get_lens().set_fov(35.0)
         # Default ambient light
         alight = AmbientLight('ambient')
         alight.set_color(DEFAULT_AMBIENT_COLOR)

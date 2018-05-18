@@ -306,6 +306,6 @@ class GeomBuilder(object):
 
 def to_cartesian(azimuth, elevation, length):
     x = length * sin(azimuth) * cos(elevation)
-    y = length * sin(elevation)
-    z = -length * cos(azimuth) * cos(elevation)
+    y = -length * cos(azimuth) * cos(elevation)
+    z = length * sin(elevation)
     return (x, y, z)
