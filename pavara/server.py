@@ -106,6 +106,22 @@ class Server:
     def handle_input(self, player, **args):
         player.input(args['input'], args['pressed'])
 
+    def handle_mouse(self, player, **args):
+        player.mouse(args['x'], args['y'])
+
+    def handle_fire(self, player, **args):
+        from .weapons import Grenade
+        floater_pos = player.floater.get_pos(self.world.node)
+        direction = floater_pos - (player.node.get_pos() + Vec3(0, 0, 1.25))
+        grenade = Grenade()
+        grenade.node.set_pos(floater_pos)
+        grenade.body.apply_central_impulse(direction * 100.0)
+        self.world.attach(grenade)
+        # TODO: need a better system for sending attached/removed events from the world
+        self.broadcast('attached', objects=[grenade.serialize()], state={
+            grenade.world_id: grenade.get_state(),
+        })
+
     def handle_explode(self, player, **args):
         if not self.world:
             return

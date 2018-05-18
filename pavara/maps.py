@@ -1,7 +1,7 @@
 from panda3d.core import LColor, Vec3
 import drill
 
-from .constants import DEFAULT_GROUND_COLOR, DEFAULT_HORIZON_COLOR, DEFAULT_HORIZON_SCALE, DEFAULT_SKY_COLOR
+from .constants import DEFAULT_GROUND_COLOR, DEFAULT_HORIZON_COLOR, DEFAULT_SKY_COLOR
 from .objects import Block, Ground, Ramp
 from .sky import Sky
 
@@ -14,7 +14,7 @@ class Map:
         self.description = attrs.get('description', '')
         self.coords = attrs.get('coords', 'z-up').lower()
 
-    def parse_vector(self, s, default=None):
+    def parse_vector(self, s, default=None, spatial=True):
         if s is None or not s.strip():
             return default or Vec3(0, 0, 0)
         parts = tuple(float(v.strip()) for v in s.split(','))
@@ -23,7 +23,10 @@ class Map:
         if self.coords == 'z-up':
             return Vec3(*parts)
         elif self.coords == 'y-up':
-            return Vec3(parts[0], parts[2], parts[1])
+            if spatial:
+                return Vec3(parts[0], -parts[2], parts[1])
+            else:
+                return Vec3(parts[0], parts[2], parts[1])
         else:
             raise ValueError('Unknown coordinate system: "{}"'.format(self.coords))
 
@@ -49,7 +52,7 @@ class Map:
             if xml.tagname == 'block':
                 world.attach(Block(
                     self.parse_vector(xml['center']),
-                    self.parse_vector(xml['size']),
+                    self.parse_vector(xml['size'], spatial=False),
                     self.parse_color(xml['color']),
                     self.parse_float(xml.attrs.get('mass'), default=context.get('mass', 0)),
                 ))
@@ -67,7 +70,8 @@ class Map:
                     )
                 ))
             elif xml.tagname == 'ground':
-                sky.set_ground_color(self.parse_color(xml.attrs.get('color'), DEFAULT_GROUND_COLOR))
+                if sky:
+                    sky.set_ground_color(self.parse_color(xml.attrs.get('color'), DEFAULT_GROUND_COLOR))
                 world.attach(Ground())
             elif xml.tagname == 'sky':
                 sky = world.attach(Sky(

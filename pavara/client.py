@@ -1,5 +1,5 @@
 from direct.showbase.ShowBase import ShowBase
-from panda3d.core import AntialiasAttrib, loadPrcFile, loadPrcFileData
+from panda3d.core import AntialiasAttrib, WindowProperties, loadPrcFile, loadPrcFileData
 
 from .log import configure_logging
 from .network import MsgpackProtocol
@@ -35,6 +35,11 @@ class Client (ShowBase):
         self.set_background_color(0, 0, 0)
         self.disable_mouse()
 
+        props = WindowProperties()
+        props.set_cursor_hidden(True)
+        props.set_mouse_mode(WindowProperties.M_confined)
+        self.win.request_properties(props)
+
         self.render.set_antialias(AntialiasAttrib.M_multisample)
 
         self.camera.set_pos(0, 0, 200)
@@ -44,13 +49,17 @@ class Client (ShowBase):
         self.accept('r-up', self.ready)
         self.accept('g-up', self.start)
         self.accept('f-up', self.explode)
+        self.accept('mouse1', self.fire)
         self.accept('escape', sys.exit)
+
+        self.taskMgr.add(self.check_mouse, 'check_mouse')
 
         motion = {
             'w': 'forward',
             's': 'backward',
             'a': 'left',
             'd': 'right',
+            '2': 'center',
         }
         for key, cmd in motion.items():
             self.accept(key, self.input, [cmd, True])
@@ -59,7 +68,7 @@ class Client (ShowBase):
         self.a = 0.0
 
     def load(self):
-        with open('maps/coromoran.xml', 'r') as f:
+        with open('maps/bwadi.xml', 'r') as f:
             self.protocol.send('load', xml=f.read())
 
     def ready(self):
@@ -73,6 +82,18 @@ class Client (ShowBase):
 
     def input(self, cmd, pressed):
         self.protocol.send('input', input=cmd, pressed=pressed)
+
+    def fire(self):
+        self.protocol.send('fire')
+
+    def check_mouse(self, task):
+        mw = self.mouseWatcherNode
+        if mw.has_mouse():
+            x, y = mw.get_mouse_x(), mw.get_mouse_y()
+            self.protocol.send('mouse', x=x, y=y)
+            props = self.win.get_properties()
+            self.win.move_pointer(0, int(props.get_x_size() / 2), int(props.get_y_size() / 2))
+        return task.cont
 
     def render_loop(self):
         next_call = self.loop.time() + self.throttle

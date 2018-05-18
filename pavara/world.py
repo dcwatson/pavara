@@ -14,7 +14,7 @@ class World:
         self.loader = loader
         self.camera = camera
         self.physics = BulletWorld()
-        self.gravity = Vec3(0, 0, -9.81)
+        self.gravity = Vec3(0, 0, -30.0)
         self.physics.set_gravity(self.gravity)
         self.objects = {}
         self.frame = 0
@@ -32,7 +32,7 @@ class World:
             self.node.attach_new_node(d).show()
             self.physics.set_debug_node(d)
         if self.camera:
-            self.camera.node().get_lens().set_fov(80.0, 60.0)
+            self.camera.node().get_lens().set_fov(80.0, 50.0)
             self.camera.node().get_lens().set_near(0.1)
         # Default ambient light
         alight = AmbientLight('ambient')

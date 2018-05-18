@@ -9,9 +9,12 @@ import math
 
 class Player (PhysicalObject):
     TURN_ACCEL = 0.1  # seconds to reach TURN_SPEED
-    TURN_SPEED = 90.0  # deg/sec
+    TURN_SPEED = 75.0  # deg/sec
+    TURN_DAMPER = 0.5  # The fraction of motor power to reduce turn power by while moving
     WALK_ACCEL = 0.25  # seconds to reach WALK_SPEED
-    WALK_SPEED = 20.0  # m/sec
+    WALK_SPEED = 12.0  # m/sec
+    MAX_SWIVEL = 60.0  # Maximum head swivel (side-to-side) in degrees
+    MAX_PITCH = 20.0  # Maximum head pitch (up-and-down) in degrees
 
     def __init__(self, pid, name=None, protocol=None):
         super().__init__(name=name)
@@ -31,6 +34,9 @@ class Player (PhysicalObject):
         }
         self.turn_power = 0.0
         self.motor_power = 0.0
+        self.head_swivel = 0.0
+        self.head_pitch = 0.0
+        self.mouse_dirty = False
 
     def update_camera(self, world, camera):
         pos = self.node.get_pos() + Vec3(0, 0, 1.75)
@@ -53,15 +59,45 @@ class Player (PhysicalObject):
         })
         return data
 
+    def get_state(self):
+        state = super().get_state()
+        state.update({
+            'head_swivel': self.head_swivel,
+            'head_pitch': self.head_pitch,
+        })
+        return state
+
+    def set_state(self, state, fluid=True):
+        super().set_state(state, fluid=fluid)
+        self.head_swivel = state['head_swivel']
+        self.head_pitch = state['head_pitch']
+        self.floater.set_pos(0, 0, 1.75)
+        self.floater.set_h(self.head_swivel * -self.MAX_SWIVEL)
+        self.floater.set_p(self.head_pitch * self.MAX_PITCH)
+        self.floater.set_y(self.floater, 2.0)
+
     def send(self, cmd, **args):
         self.protocol.send(cmd, **args)
 
     def input(self, cmd, pressed):
         if cmd in self.motion:
             self.motion[cmd] = pressed
+        if cmd == 'center' and pressed:
+            self.head_swivel = 0.0
+            self.head_pitch = 0.0
+            self.mouse_dirty = True
+
+    def mouse(self, x, y):
+        self.head_swivel = max(min(self.head_swivel + x, 1.0), -1.0)
+        self.head_pitch = max(min(self.head_pitch + y, 1.0), -1.0)
+        self.mouse_dirty = True
+        self.floater.set_pos(0, 0, 1.75)
+        self.floater.set_h(self.head_swivel * -self.MAX_SWIVEL)
+        self.floater.set_p(self.head_pitch * self.MAX_PITCH)
+        self.floater.set_y(self.floater, 2.0)
 
     def update(self, world, dt):
-        dirty = False
+        dirty = self.mouse_dirty
         old_pos = self.node.get_pos()
         h = self.node.get_h()
         new_velocity = self.velocity + (world.gravity * dt)
@@ -81,7 +117,7 @@ class Player (PhysicalObject):
                 self.motor_power = 0.0
 
         if not (self.motion['left'] ^ self.motion['right']):
-            self.turn_power /= 1.5
+            self.turn_power /= 1.25
             if abs(self.turn_power) < 0.05:
                 self.turn_power = 0.0
         elif self.motion['left']:
@@ -89,8 +125,11 @@ class Player (PhysicalObject):
         elif self.motion['right']:
             self.turn_power = max(min(self.turn_power, 0) - (dt / self.TURN_ACCEL), -1.0)
 
-        self.turn_power /= ((abs(self.motor_power) * 1.0) + 1.0)
-        dirty = (abs(self.turn_power) + abs(self.motor_power)) > 0
+        # Dampen the turn motor while walking.
+        self.turn_power /= ((abs(self.motor_power) * self.TURN_DAMPER) + 1.0)
+
+        if (abs(self.turn_power) + abs(self.motor_power)) > 0:
+            dirty = True
         h += self.TURN_SPEED * dt * self.turn_power
         self.node.set_h(h)
 
@@ -125,6 +164,7 @@ class Player (PhysicalObject):
 
         self.node.set_pos(new_pos)
         self.velocity = new_velocity
+        self.mouse_dirty = False
         if old_pos != new_pos:
             dirty = True
 
