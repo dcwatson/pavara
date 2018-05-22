@@ -3,7 +3,7 @@ from panda3d.core import AmbientLight, DirectionalLight, NodePath, Vec3
 
 from .constants import DEFAULT_AMBIENT_COLOR
 from .geom import to_cartesian
-from .objects import GameObject
+from .objects import GameObject, PhysicalObject
 
 import math
 
@@ -22,6 +22,7 @@ class World:
         self.incarnators = []
         self.debug = debug
         self.setup()
+        self.commands = []
 
     def setup(self):
         self.node = NodePath('world')
@@ -47,11 +48,14 @@ class World:
         self.frame += 1
         self.physics.doPhysics(dt, 4, 1.0 / 60.0)
         state = {}
-        for obj in self.objects.values():
+        for obj in list(self.objects.values()):
             if obj.update(self, dt):
                 state[obj.world_id] = obj.get_state()
+        for cmd, args in self.commands:
+            yield cmd, args
         if state:
             yield 'state', {'frame': self.frame, 'state': state}
+        self.commands = []
 
     def attach(self, obj):
         obj.setup(self)
@@ -60,13 +64,31 @@ class World:
             obj.world_id = self.last_object_id
         self.objects[obj.world_id] = obj
         obj.attached(self)
+        if self.frame > 0 and False:
+            self.commands.append(('attached', {
+                'objects': [obj.serialize()],
+                'state': {
+                    obj.world_id: obj.get_state(),
+                }
+            }))
         return obj
 
-    def remove(self, obj):
-        if obj.world_id not in self.objects:
+    def remove(self, world_id):
+        if isinstance(world_id, GameObject):
+            world_id = world_id.world_id
+        if world_id not in self.objects:
             return
-        del self.objects[obj.world_id]
-        obj.removed(self)
+        self.objects[world_id].removed(self)
+        del self.objects[world_id]
+        if self.frame > 0:
+            self.commands.append(('removed', {'world_ids': [world_id]}))
+
+    def find(self, pos, radius):
+        for obj in self.objects.values():
+            if isinstance(obj, PhysicalObject):
+                d = (obj.node.get_pos() - pos).length()
+                if d <= radius:
+                    yield obj, d
 
     def add_incarnator(self, pos, heading):
         self.incarnators.append((pos, heading))

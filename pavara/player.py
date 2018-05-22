@@ -1,5 +1,5 @@
-from panda3d.bullet import BulletBoxShape
-from panda3d.core import Vec3
+from panda3d.bullet import BulletConvexHullShape
+from panda3d.core import TransformState, Vec3
 
 from .constants import Collision
 from .objects import PhysicalObject
@@ -44,9 +44,16 @@ class Player (PhysicalObject):
         camera.look_at(self.floater.get_pos(world.node))
 
     def setup(self, world):
-        self.body.add_shape(BulletBoxShape(Vec3(0.5, 0.5, 0.5)))
+        # self.body.add_shape(BulletBoxShape(Vec3(0.5, 0.5, 0.5)))
         head = world.load_model('models/head')
         if head:
+            geomNodes = head.findAllMatches('**/+GeomNode')
+            geomNode = geomNodes.getPath(0).node()
+            geom = geomNode.getGeom(0)
+            shape = BulletConvexHullShape()
+            shape.addGeom(geom)
+            self.body.add_shape(shape)
+
             head.set_color(1, 0, 0, 1)
             head.set_scale(2.0)
             head.set_h(180)
@@ -144,23 +151,59 @@ class Player (PhysicalObject):
             new_velocity.set_y(0)
 
         new_pos = old_pos + (new_velocity * dt)
-        self.node.set_pos(new_pos)
 
-        result = world.physics.contact_test(self.body)
-        for contact in result.get_contacts():
-            m = contact.manifold_point
-            normal = m.normal_world_on_b
-            new_velocity = new_velocity - (normal * new_velocity.dot(normal))
-
-        new_pos = old_pos + (new_velocity * dt)
-        end = new_pos + Vec3(0, 0, -0.7)
-        result = world.physics.ray_test_closest(new_pos, end, Collision.SOLID)
+        # Cast a ray below our feet to determine if we're resting on an object.
+        start = new_pos + Vec3(0, 0, 0.5)
+        end = new_pos + Vec3(0, 0, -1.0)
+        result = world.physics.ray_test_closest(start, end, Collision.SOLID)
         if result.has_hit():
             self.resting = True
             new_velocity.set_z(0)
             new_pos.set_z(result.hit_pos.z + 0.52)
         else:
             self.resting = False
+
+        count = 0
+        max_tries = 3
+        shape = self.body.get_shape(0)
+        from_ts = TransformState.make_pos(old_pos)
+        to_ts = TransformState.make_pos(new_pos)
+        result = world.physics.sweep_test_closest(shape, from_ts, to_ts, Collision.SOLID, 0)
+        while result.has_hit() and count < max_tries:
+            normal = result.hit_normal
+            slide = 1.0 - result.hit_fraction - 0.01
+            # First, move us back out of contact with whatever we hit.
+            direction = new_pos - old_pos
+            old_pos = old_pos + (direction * (result.hit_fraction - 0.01))
+
+            # This is a safety check to make sure we actually moved out of the collision.
+            to_ts = TransformState.make_pos(old_pos)
+            result = world.physics.sweep_test_closest(shape, from_ts, to_ts, Collision.SOLID, 0)
+            if result.has_hit():
+                print("UH OH")
+
+            # Adjust the velocity to be along the plane perpendicular to the normal of the hit.
+            new_velocity = -new_velocity.cross(normal).cross(normal)
+            if new_velocity.z < 0.01:
+                self.resting = True
+                new_velocity.set_z(0)
+
+            # Now try to slide along that plane the rest of the way.
+            new_pos = old_pos + (new_velocity * dt * slide)
+            from_ts = TransformState.make_pos(old_pos)
+            to_ts = TransformState.make_pos(new_pos)
+            result = world.physics.sweep_test_closest(shape, from_ts, to_ts, Collision.SOLID, 0)
+            if result.hit_fraction < 0.0001:
+                print("NO ROOM TO SLIDE", result.node, result.hit_normal, new_velocity, slide)
+                break
+            count += 1
+        if count >= max_tries:
+            new_pos = old_pos
+            print("FAIL", normal, new_velocity, result.hit_fraction)
+
+        if new_velocity.length() < 0.001:
+            new_velocity = Vec3()
+            self.resting = True
 
         self.node.set_pos(new_pos)
         self.velocity = new_velocity

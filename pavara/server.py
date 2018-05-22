@@ -78,7 +78,9 @@ class Server:
     def handle_load(self, player, **args):
         if self.world:
             return
-        self.world = World()
+        from direct.showbase.Loader import Loader
+        loader = Loader(self)
+        self.world = World(loader=loader)
         m = load_map(args['xml'], self.world)
         logger.debug('Player %s loaded map "%s"', player.pid, m.name)
         self.broadcast('loaded', objects=self.world.serialize())

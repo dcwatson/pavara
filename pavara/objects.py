@@ -72,6 +72,9 @@ class PhysicalObject (GameObject):
         world.physics.remove(self.body)
         self.node.remove_node()
 
+    def hit(self, pos, distance):
+        pass
+
     def get_state(self):
         return {
             'pos': self.node.get_pos(),
@@ -102,6 +105,12 @@ class SolidObject (PhysicalObject):
             'mass': self.mass,
         })
         return data
+
+    def hit(self, pos, distance):
+        power = (1.0 / (distance * distance)) * 20000.0
+        impulse = (self.node.get_pos() - pos) * power
+        self.body.set_active(True)
+        self.body.apply_central_impulse(impulse)
 
     def update(self, world, dt):
         return self.body.is_active()

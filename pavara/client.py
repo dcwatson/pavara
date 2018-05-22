@@ -68,7 +68,7 @@ class Client (ShowBase):
         self.a = 0.0
 
     def load(self):
-        with open('maps/bwadi.xml', 'r') as f:
+        with open('maps/icebox-classic.xml', 'r') as f:
             self.protocol.send('load', xml=f.read())
 
     def ready(self):
@@ -157,7 +157,8 @@ class Client (ShowBase):
             self.world.set_state(args['state'], fluid=False)
 
     def handle_removed(self, **args):
-        pass
+        for world_id in args['world_ids']:
+            self.world.remove(world_id)
 
     def handle_state(self, **args):
         # logger.debug('Got state for frame %s', args['frame'])
