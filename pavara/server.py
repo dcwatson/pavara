@@ -138,6 +138,9 @@ class Server:
                     random.uniform(-5000, 5000),
                 ))
 
+    def handle_ping(self, player, **args):
+        player.send('pong')
+
 
 if __name__ == '__main__':
     configure_logging()

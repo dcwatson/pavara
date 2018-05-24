@@ -32,6 +32,9 @@ class Client (ShowBase):
         self.player = None
         self.overhead = True
 
+        self.last_ping = None
+        self.latency = 0
+
         self.set_frame_rate_meter(True)
         self.set_background_color(0, 0, 0)
         self.disable_mouse()
@@ -107,6 +110,12 @@ class Client (ShowBase):
             self.win.move_pointer(0, int(props.get_x_size() / 2), int(props.get_y_size() / 2))
         return task.cont
 
+    def ping_loop(self):
+        if self.protocol:
+            self.last_ping = self.loop.time()
+            self.protocol.send('ping')
+        self.loop.call_later(1.0, self.ping_loop)
+
     def render_loop(self):
         next_call = self.loop.time() + self.throttle
         if self.overhead:
@@ -138,6 +147,7 @@ class Client (ShowBase):
         logger.debug('Connected to %s:%s', proto.address, proto.port)
         self.protocol = proto
         self.protocol.send('join', name=self.opts.name)
+        self.ping_loop()
 
     def disconnected(self, proto):
         logger.debug('Disconnected')
@@ -182,6 +192,10 @@ class Client (ShowBase):
         if 'state' in args:
             self.world.set_state(args['state'], fluid=False)
         self.world.node.reparent_to(self.render)
+
+    def handle_pong(self, **args):
+        self.latency = self.loop.time() - self.last_ping
+        print('ping: %dms' % int(self.latency * 1000.0))
 
 
 if __name__ == '__main__':
