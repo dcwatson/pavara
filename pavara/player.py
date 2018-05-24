@@ -65,10 +65,12 @@ class Player (PhysicalObject):
         shape.add_geom(geom)
         self.body.add_shape(shape, TransformState.make_pos(0, 0, 1.0))
         """
-        head = world.load_model('models/head')
+        head = world.load_model('models/walker-head')
+        head.find('Walker.Head.Main').set_color(1, 0, 0, 1)
+        head.find('Walker.Head.Glass').set_color(0.7, 0.7, 1, 0.3)
+        head.find('Walker.Head.Tubes').set_color(0.4, 0.4, 0.4, 1)
         head.set_color(1, 0, 0, 1)
         head.set_scale(2.0)
-        head.set_h(180)
         head.reparent_to(self.head)
 
     def serialize(self):

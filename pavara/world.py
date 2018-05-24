@@ -1,5 +1,5 @@
 from panda3d.bullet import BulletDebugNode, BulletWorld
-from panda3d.core import AmbientLight, DirectionalLight, NodePath, Vec3
+from panda3d.core import AmbientLight, DirectionalLight, NodePath, TransparencyAttrib, Vec3
 
 from .constants import DEFAULT_AMBIENT_COLOR
 from .geom import to_cartesian
@@ -26,6 +26,7 @@ class World:
 
     def setup(self):
         self.node = NodePath('world')
+        self.node.set_transparency(TransparencyAttrib.MAlpha)
         if self.debug:
             d = BulletDebugNode('Debug')
             d.show_wireframe(True)

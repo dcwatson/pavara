@@ -1,109 +1,175 @@
-<CoordinateSystem> { Z-Up }
-
-<Comment> {
-  "dxf2egg grenade.dxf grenade.egg"
-}
-<Group> grenade.yellow {
-  <VertexPool> grenade.yellow {
-    <Vertex> 0 {
-      0.001753 -0.162725 0
+<CoordinateSystem> { Z-up } 
+  <Group> grenade.yellow {
+    <Transform> {
+      <Matrix4> {
+        1.0 0.0 0.0 0.0 
+        0.0 1.0 0.0 0.0 
+        0.0 0.0 1.0 0.0 
+        0.0 0.0 0.0 1.0 
+      }
     }
-    <Vertex> 1 {
-      -0.203673 -0.0908 0
+    
+    <VertexPool> grenade.yellow {
+    
+      <Vertex> 0 {-0.103464 0.177337 -0.090091
+      }
+      <Vertex> 1 {0.101962 0.177337 -0.018166
+      }
+      <Vertex> 2 {0.203673 0.000000 -0.090800
+      }
+      <Vertex> 3 {-0.001753 -0.000000 -0.162725
+      }
+      <Vertex> 4 {0.000251 0.000000 0.054468
+      }
+      <Vertex> 5 {-0.205175 -0.000000 -0.017457
+      }
+      <Vertex> 6 {-0.103464 -0.177337 -0.090091
+      }
+      <Vertex> 7 {0.101962 -0.177337 -0.018166
+      }
+      <Vertex> 8 {-0.103464 0.177337 -0.090091
+      }
+      <Vertex> 9 {-0.205175 -0.000000 -0.017457
+      }
+      <Vertex> 10 {0.000251 0.000000 0.054468
+      }
+      <Vertex> 11 {0.101962 0.177337 -0.018166
+      }
+      <Vertex> 12 {0.203673 0.000000 -0.090800
+      }
+      <Vertex> 13 {0.101962 -0.177337 -0.018166
+      }
+      <Vertex> 14 {-0.103464 -0.177337 -0.090091
+      }
+      <Vertex> 15 {-0.001753 -0.000000 -0.162725
+      }
+      <Vertex> 16 {0.101962 0.177337 -0.018166
+      }
+      <Vertex> 17 {0.000251 0.000000 0.054468
+      }
+      <Vertex> 18 {0.101962 -0.177337 -0.018166
+      }
+      <Vertex> 19 {0.203673 0.000000 -0.090800
+      }
+      <Vertex> 20 {-0.205175 -0.000000 -0.017457
+      }
+      <Vertex> 21 {-0.103464 0.177337 -0.090091
+      }
+      <Vertex> 22 {-0.001753 -0.000000 -0.162725
+      }
+      <Vertex> 23 {-0.103464 -0.177337 -0.090091
+      }}
+    
+    
+    <Polygon> {
+      <Normal> {0.286338 0.499190 -0.817814}
+      <VertexRef> { 0 1 2 3 <Ref> { grenade.yellow }} 
     }
-    <Vertex> 2 {
-      -0.101962 -0.018166 0.177337
+    <Polygon> {
+      <Normal> {-0.286338 -0.499190 0.817814}
+      <VertexRef> { 4 5 6 7 <Ref> { grenade.yellow }} 
     }
-    <Vertex> 3 {
-      0.103464 -0.090091 0.177337
+    <Polygon> {
+      <Normal> {-0.286338 0.499190 0.817814}
+      <VertexRef> { 8 9 10 11 <Ref> { grenade.yellow }} 
     }
-    <Vertex> 4 {
-      -0.101962 -0.018166 -0.177337
+    <Polygon> {
+      <Normal> {0.286338 -0.499190 -0.817814}
+      <VertexRef> { 12 13 14 15 <Ref> { grenade.yellow }} 
     }
-    <Vertex> 5 {
-      0.103464 -0.090091 -0.177337
+    <Polygon> {
+      <Normal> {0.581150 0.000000 0.813797}
+      <VertexRef> { 16 17 18 19 <Ref> { grenade.yellow }} 
     }
-    <Vertex> 6 {
-      0.205175 -0.017457 0
-    }
-    <Vertex> 7 {
-      -0.000251 0.054468 0
+    <Polygon> {
+      <Normal> {-0.581150 -0.000000 -0.813797}
+      <VertexRef> { 20 21 22 23 <Ref> { grenade.yellow }} 
     }
   }
-  <Polygon> {
-    <RGBA> { 1 1 1 1 }
-    <VertexRef> { 0 1 2 3 <Ref> { grenade.yellow } }
-  }
-  <Polygon> {
-    <RGBA> { 1 1 1 1 }
-    <VertexRef> { 4 5 6 7 <Ref> { grenade.yellow } }
-  }
-  <Polygon> {
-    <RGBA> { 1 1 1 1 }
-    <VertexRef> { 2 7 6 3 <Ref> { grenade.yellow } }
-  }
-  <Polygon> {
-    <RGBA> { 1 1 1 1 }
-    <VertexRef> { 0 5 4 1 <Ref> { grenade.yellow } }
-  }
-  <Polygon> {
-    <RGBA> { 1 1 1 1 }
-    <VertexRef> { 1 4 7 2 <Ref> { grenade.yellow } }
-  }
-  <Polygon> {
-    <RGBA> { 1 1 1 1 }
-    <VertexRef> { 5 0 3 6 <Ref> { grenade.yellow } }
-  }
-}
-<Group> grenade.red {
-  <VertexPool> grenade.red {
-    <Vertex> 0 {
-      0.000253 -0.054468 -0.000868
+  <Group> grenade.red {
+    <Transform> {
+      <Matrix4> {
+        1.0 0.0 0.0 0.0 
+        0.0 1.0 0.0 0.0 
+        0.0 0.0 1.0 0.0 
+        0.0 0.0 0.0 1.0 
+      }
     }
-    <Vertex> 1 {
-      -0.10246 0.017457 0.177045
+    
+    <VertexPool> grenade.red {
+    
+      <Vertex> 0 {-0.204679 -0.000288 0.018166
+      }
+      <Vertex> 1 {-0.101966 0.177625 0.090091
+      }
+      <Vertex> 2 {0.102460 0.177045 0.017457
+      }
+      <Vertex> 3 {-0.000253 -0.000868 -0.054468
+      }
+      <Vertex> 4 {0.000749 0.000868 0.162725
+      }
+      <Vertex> 5 {-0.101964 -0.177045 0.090800
+      }
+      <Vertex> 6 {0.102462 -0.177625 0.018166
+      }
+      <Vertex> 7 {0.205175 0.000288 0.090091
+      }
+      <Vertex> 8 {-0.204679 -0.000288 0.018166
+      }
+      <Vertex> 9 {-0.101964 -0.177045 0.090800
+      }
+      <Vertex> 10 {0.000749 0.000868 0.162725
+      }
+      <Vertex> 11 {-0.101966 0.177625 0.090091
+      }
+      <Vertex> 12 {0.102460 0.177045 0.017457
+      }
+      <Vertex> 13 {0.205175 0.000288 0.090091
+      }
+      <Vertex> 14 {0.102462 -0.177625 0.018166
+      }
+      <Vertex> 15 {-0.000253 -0.000868 -0.054468
+      }
+      <Vertex> 16 {-0.101966 0.177625 0.090091
+      }
+      <Vertex> 17 {0.000749 0.000868 0.162725
+      }
+      <Vertex> 18 {0.205175 0.000288 0.090091
+      }
+      <Vertex> 19 {0.102460 0.177045 0.017457
+      }
+      <Vertex> 20 {-0.101964 -0.177045 0.090800
+      }
+      <Vertex> 21 {-0.204679 -0.000288 0.018166
+      }
+      <Vertex> 22 {-0.000253 -0.000868 -0.054468
+      }
+      <Vertex> 23 {0.102462 -0.177625 0.018166
+      }}
+    
+    
+    <Polygon> {
+      <Normal> {-0.289164 0.497558 -0.817814}
+      <VertexRef> { 0 1 2 3 <Ref> { grenade.red }} 
     }
-    <Vertex> 2 {
-      0.101966 0.090091 0.177625
+    <Polygon> {
+      <Normal> {0.289164 -0.497559 0.817814}
+      <VertexRef> { 4 5 6 7 <Ref> { grenade.red }} 
     }
-    <Vertex> 3 {
-      0.204679 0.018166 -0.000288
+    <Polygon> {
+      <Normal> {-0.575495 0.001632 0.817804}
+      <VertexRef> { 8 9 10 11 <Ref> { grenade.red }} 
     }
-    <Vertex> 4 {
-      -0.205175 0.090091 0.000288
+    <Polygon> {
+      <Normal> {0.575495 -0.001632 -0.817804}
+      <VertexRef> { 12 13 14 15 <Ref> { grenade.red }} 
     }
-    <Vertex> 5 {
-      -0.102462 0.018166 -0.177625
+    <Polygon> {
+      <Normal> {0.290579 0.503272 0.813806}
+      <VertexRef> { 16 17 18 19 <Ref> { grenade.red }} 
     }
-    <Vertex> 6 {
-      0.101964 0.0908 -0.177045
-    }
-    <Vertex> 7 {
-      -0.000749 0.162725 0.000868
+    <Polygon> {
+      <Normal> {-0.290579 -0.503272 -0.813806}
+      <VertexRef> { 20 21 22 23 <Ref> { grenade.red }} 
     }
   }
-  <Polygon> {
-    <RGBA> { 1 1 1 1 }
-    <VertexRef> { 0 1 2 3 <Ref> { grenade.red } }
-  }
-  <Polygon> {
-    <RGBA> { 1 1 1 1 }
-    <VertexRef> { 4 5 6 7 <Ref> { grenade.red } }
-  }
-  <Polygon> {
-    <RGBA> { 1 1 1 1 }
-    <VertexRef> { 2 7 6 3 <Ref> { grenade.red } }
-  }
-  <Polygon> {
-    <RGBA> { 1 1 1 1 }
-    <VertexRef> { 0 5 4 1 <Ref> { grenade.red } }
-  }
-  <Polygon> {
-    <RGBA> { 1 1 1 1 }
-    <VertexRef> { 1 4 7 2 <Ref> { grenade.red } }
-  }
-  <Polygon> {
-    <RGBA> { 1 1 1 1 }
-    <VertexRef> { 5 0 3 6 <Ref> { grenade.red } }
-  }
-}
