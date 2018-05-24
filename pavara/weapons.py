@@ -9,10 +9,11 @@ class Grenade (SolidObject):
         super().__init__(mass=mass, name=name)
 
     def setup(self, world):
-        self.body.add_shape(BulletSphereShape(0.5))
+        self.body.add_shape(BulletSphereShape(0.2))
         model = world.load_model('models/grenade')
         if model:
-            model.set_color(1, 1, 0, 1)
+            model.find('grenade.red').set_color(1, 0, 0, 1)
+            model.find('grenade.yellow').set_color(1, 1, 0, 1)
             model.reparent_to(self.node)
 
     def update(self, world, dt):

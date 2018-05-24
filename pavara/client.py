@@ -30,6 +30,7 @@ class Client (ShowBase):
         self.pid = None
         self.world = None
         self.player = None
+        self.overhead = True
 
         self.set_frame_rate_meter(True)
         self.set_background_color(0, 0, 0)
@@ -42,13 +43,11 @@ class Client (ShowBase):
 
         self.render.set_antialias(AntialiasAttrib.M_multisample)
 
-        self.camera.set_pos(0, 0, 200)
-        self.camera.look_at(0, 0, 0)
-
         self.accept('l-up', self.load)
         self.accept('r-up', self.ready)
         self.accept('g-up', self.start)
         self.accept('f-up', self.explode)
+        self.accept('tab-up', self.toggle_camera)
         self.accept('mouse1', self.fire)
         self.accept('escape', sys.exit)
 
@@ -86,6 +85,19 @@ class Client (ShowBase):
     def fire(self):
         self.protocol.send('fire')
 
+    def toggle_camera(self):
+        if self.player:
+            if self.player.camera:
+                self.player.camera = None
+                self.camera.reparent_to(self.render)
+                self.overhead = True
+            else:
+                self.player.set_camera(self.camera)
+                self.overhead = False
+        else:
+            self.camera.reparent_to(self.render)
+            self.overhead = True
+
     def check_mouse(self, task):
         mw = self.mouseWatcherNode
         if mw.has_mouse():
@@ -97,12 +109,10 @@ class Client (ShowBase):
 
     def render_loop(self):
         next_call = self.loop.time() + self.throttle
-        if self.player:
-            self.player.update_camera(self.world, self.camera)
-        else:
+        if self.overhead:
             self.a += math.pi / 2400.0
-            x = math.cos(self.a) * 130.0
-            y = math.sin(self.a) * 130.0
+            x = math.cos(self.a) * 100.0
+            y = math.sin(self.a) * 100.0
             self.camera.set_pos(x, y, 150)
             self.camera.look_at(0, 0, 0)
         self.taskMgr.step()
@@ -149,6 +159,8 @@ class Client (ShowBase):
 
     def handle_started(self, **args):
         self.player = self.world.objects[self.pid]
+        self.player.set_camera(self.camera)
+        self.overhead = False
 
     def handle_attached(self, **args):
         for data in args['objects']:

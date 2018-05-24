@@ -1,4 +1,6 @@
-from panda3d.bullet import BulletConvexHullShape
+from direct.interval.IntervalGlobal import Parallel
+from direct.interval.LerpInterval import LerpHprInterval, LerpPosHprInterval
+from panda3d.bullet import BulletBoxShape, BulletConvexHullShape
 from panda3d.core import TransformState, Vec3
 
 from .constants import Collision
@@ -15,6 +17,7 @@ class Player (PhysicalObject):
     WALK_SPEED = 12.0  # m/sec
     MAX_SWIVEL = 60.0  # Maximum head swivel (side-to-side) in degrees
     MAX_PITCH = 20.0  # Maximum head pitch (up-and-down) in degrees
+    CAMERA_OFFSET = Vec3(0, 0.5, 0.5)  # Where the camera should be placed relative to the head
 
     def __init__(self, pid, name=None, protocol=None):
         super().__init__(name=name)
@@ -24,8 +27,13 @@ class Player (PhysicalObject):
         self.velocity = Vec3(0, 0, 0)
         self.resting = False
         self.body.set_into_collide_mask(Collision.PLAYER)
-        self.floater = self.node.attach_new_node('floater')
-        self.floater.set_pos(0, 1, 1.75)
+        self.head = self.node.attach_new_node('head')
+        self.head.set_pos(0, 0, 1.0)
+        # Floating point to look at a little ahead of the camera.
+        self.floater = self.head.attach_new_node('floater')
+        self.floater.set_pos(self.CAMERA_OFFSET + Vec3(0, 5.0, 0))
+        # Set when in first-person mode.
+        self.camera = None
         self.motion = {
             'forward': False,
             'backward': False,
@@ -37,27 +45,31 @@ class Player (PhysicalObject):
         self.head_swivel = 0.0
         self.head_pitch = 0.0
         self.mouse_dirty = False
+        self.reposition_head()
 
-    def update_camera(self, world, camera):
-        pos = self.node.get_pos() + Vec3(0, 0, 1.75)
-        camera.set_pos(pos)
-        camera.look_at(self.floater.get_pos(world.node))
+    def reposition_head(self):
+        self.head.set_h(self.head_swivel * -self.MAX_SWIVEL)
+        self.head.set_p(self.head_pitch * self.MAX_PITCH)
+
+    def set_camera(self, camera):
+        self.camera = camera
+        self.camera.reparent_to(self.head)
+        self.camera.set_pos(self.CAMERA_OFFSET)
+        self.camera.look_at(self.floater)
 
     def setup(self, world):
-        # self.body.add_shape(BulletBoxShape(Vec3(0.5, 0.5, 0.5)))
+        self.body.add_shape(BulletBoxShape(Vec3(1.0, 1.0, 1.5)))
+        """
+        geom = head.find_all_matches('**/+GeomNode').get_path(0).node().get_geom(0)
+        shape = BulletConvexHullShape()
+        shape.add_geom(geom)
+        self.body.add_shape(shape, TransformState.make_pos(0, 0, 1.0))
+        """
         head = world.load_model('models/head')
-        if head:
-            geomNodes = head.findAllMatches('**/+GeomNode')
-            geomNode = geomNodes.getPath(0).node()
-            geom = geomNode.getGeom(0)
-            shape = BulletConvexHullShape()
-            shape.addGeom(geom)
-            self.body.add_shape(shape)
-
-            head.set_color(1, 0, 0, 1)
-            head.set_scale(2.0)
-            head.set_h(180)
-            head.reparent_to(self.node)
+        head.set_color(1, 0, 0, 1)
+        head.set_scale(2.0)
+        head.set_h(180)
+        head.reparent_to(self.head)
 
     def serialize(self):
         data = super().serialize()
@@ -67,21 +79,30 @@ class Player (PhysicalObject):
         return data
 
     def get_state(self):
-        state = super().get_state()
-        state.update({
-            'head_swivel': self.head_swivel,
-            'head_pitch': self.head_pitch,
-        })
-        return state
+        return {
+            'pos': self.node.get_pos(),
+            'hpr': self.node.get_hpr(),
+            'head_hpr': self.head.get_hpr(),
+        }
 
     def set_state(self, state, fluid=True):
-        super().set_state(state, fluid=fluid)
-        self.head_swivel = state['head_swivel']
-        self.head_pitch = state['head_pitch']
-        self.floater.set_pos(0, 0, 1.75)
-        self.floater.set_h(self.head_swivel * -self.MAX_SWIVEL)
-        self.floater.set_p(self.head_pitch * self.MAX_PITCH)
-        self.floater.set_y(self.floater, 2.0)
+        if fluid:
+            timestep = 1.0 / 30.0  # TODO: adjust based on latency?
+            Parallel(
+                LerpPosHprInterval(self.node, timestep, state['pos'], state['hpr']),
+                LerpHprInterval(self.head, timestep, state['head_hpr']),
+            ).start()
+            """
+            if self.camera:
+                Parallel(
+                    LerpPosHprInterval(self.node, 1.0 / 30.0, state['pos'], state['hpr']),
+                    LerpPosHprInterval(self.camera, 1.0 / 30.0, pos, state['hpr']),
+                ).start()
+            else:
+            """
+        else:
+            super().set_state(state, fluid=False)
+            self.head.set_hpr(state['head_hpr'])
 
     def send(self, cmd, **args):
         self.protocol.send(cmd, **args)
@@ -93,15 +114,13 @@ class Player (PhysicalObject):
             self.head_swivel = 0.0
             self.head_pitch = 0.0
             self.mouse_dirty = True
+            self.reposition_head()
 
     def mouse(self, x, y):
         self.head_swivel = max(min(self.head_swivel + x, 1.0), -1.0)
         self.head_pitch = max(min(self.head_pitch + y, 1.0), -1.0)
         self.mouse_dirty = True
-        self.floater.set_pos(0, 0, 1.75)
-        self.floater.set_h(self.head_swivel * -self.MAX_SWIVEL)
-        self.floater.set_p(self.head_pitch * self.MAX_PITCH)
-        self.floater.set_y(self.floater, 2.0)
+        self.reposition_head()
 
     def update(self, world, dt):
         dirty = self.mouse_dirty
@@ -153,13 +172,13 @@ class Player (PhysicalObject):
         new_pos = old_pos + (new_velocity * dt)
 
         # Cast a ray below our feet to determine if we're resting on an object.
-        start = new_pos + Vec3(0, 0, 0.5)
-        end = new_pos + Vec3(0, 0, -1.0)
+        start = new_pos + Vec3(0, 0, 1.5)
+        end = new_pos + Vec3(0, 0, -2.0)
         result = world.physics.ray_test_closest(start, end, Collision.SOLID)
         if result.has_hit():
             self.resting = True
             new_velocity.set_z(0)
-            new_pos.set_z(result.hit_pos.z + 0.52)
+            new_pos.set_z(result.hit_pos.z + 1.52)
         else:
             self.resting = False
 

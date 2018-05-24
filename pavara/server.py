@@ -114,10 +114,12 @@ class Server:
     def handle_fire(self, player, **args):
         from .weapons import Grenade
         floater_pos = player.floater.get_pos(self.world.node)
-        direction = floater_pos - (player.node.get_pos() + Vec3(0, 0, 1.25))
+        direction = floater_pos - (player.node.get_pos() + Vec3(0, 0, -1.0))
+        direction.normalize()
         grenade = Grenade()
         grenade.node.set_pos(floater_pos)
-        grenade.body.apply_central_impulse(direction * 100.0)
+        grenade.body.apply_central_impulse(direction * 150.0)
+        grenade.body.set_angular_velocity(Vec3(10.0, 0, 0))
         self.world.attach(grenade)
         # TODO: need a better system for sending attached/removed events from the world
         self.broadcast('attached', objects=[grenade.serialize()], state={
